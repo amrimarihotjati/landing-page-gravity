@@ -116,6 +116,7 @@ export default function AdminPage() {
         description: "",
         icon: "",
         playstorelink: "",
+        customprivacylink: "",
         privacypolicy: "# Privacy Policy",
         screenshots: [],
         isNew: true
@@ -138,6 +139,7 @@ export default function AdminPage() {
         description: currentApp.description,
         icon: currentApp.icon,
         playstorelink: currentApp.playstorelink,
+        customprivacylink: currentApp.customprivacylink,
         privacypolicy: currentApp.privacypolicy,
         screenshots: currentApp.screenshots || []
       };
@@ -316,7 +318,13 @@ export default function AdminPage() {
               </div>
 
               <div className={styles.formGroup}>
-                <label>Privacy Policy (Markdown)</label>
+                <label>Custom Privacy Policy URL (Opsional)</label>
+                <div style={{fontSize: '0.85rem', color: '#6b7280', marginBottom: '8px'}}>Isi jika Anda ingin menggunakan URL dari Blogger/Google Docs. Kosongkan jika ingin mengetik artikel sendiri di bawah.</div>
+                <input className={styles.input} placeholder="https://..." value={currentApp.customprivacylink || ''} onChange={(e) => setCurrentApp({...currentApp, customprivacylink: e.target.value})} />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Privacy Policy (Markdown - Artikel Bawaan)</label>
                 <textarea className={`${styles.textarea} ${styles.textareaCode}`} value={currentApp.privacypolicy} onChange={(e) => setCurrentApp({...currentApp, privacypolicy: e.target.value})} />
               </div>
 

@@ -1,69 +1,64 @@
 .privacyContainer {
-  max-width: 800px;
-  margin: 0 auto;
+  min-height: 100vh;
+  background-color: var(--background);
   padding: 4rem 2rem;
+  color: var(--text-main);
 }
 
 .backLink {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  color: var(--primary-color);
-  font-weight: 600;
   margin-bottom: 2rem;
-  transition: opacity 0.2s ease;
+  color: #3b82f6;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  background: rgba(59, 130, 246, 0.1);
 }
 
 .backLink:hover {
-  opacity: 0.8;
+  background: rgba(59, 130, 246, 0.2);
+  transform: translateX(-5px);
 }
 
 .card {
-  background: white;
-  border-radius: 24px;
-  padding: 3rem;
+  max-width: 800px;
+  margin: 0 auto;
+  background: var(--card-bg);
+  border-radius: 20px;
+  padding: 4rem;
   box-shadow: var(--card-shadow);
-  border: 1px solid var(--border-light);
+  border: var(--card-border);
+  backdrop-filter: var(--glass-blur);
 }
 
 .content {
-  margin-top: 1rem;
+  line-height: 1.8;
+  font-size: 1.1rem;
 }
 
 .content h1 {
-  font-size: 2.25rem;
+  font-size: 2.5rem;
   margin-bottom: 2rem;
-  color: var(--text-main);
+  color: white;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 1rem;
 }
 
 .content h2 {
-  font-size: 1.5rem;
-  margin-top: 2.5rem;
+  font-size: 1.8rem;
+  margin-top: 3rem;
   margin-bottom: 1rem;
-  color: var(--primary-color);
-}
-
-.content h3 {
-  font-size: 1.25rem;
-  margin-top: 1.5rem;
-  margin-bottom: 0.75rem;
-  color: var(--text-main);
+  color: #e2e8f0;
 }
 
 .content p {
+  margin-bottom: 1.5rem;
   color: var(--text-muted);
-  line-height: 1.8;
-  margin-bottom: 1.2rem;
 }
 
-.content ul, .content ol {
-  color: var(--text-muted);
-  margin-bottom: 1.2rem;
-  padding-left: 1.5rem;
-  line-height: 1.8;
-}
-
-.content a {
-  color: var(--primary-color);
-  text-decoration: underline;
+@media (max-width: 768px) {
+  .card { padding: 2rem; }
+  .content h1 { font-size: 2rem; }
 }

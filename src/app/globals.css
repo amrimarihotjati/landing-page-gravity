@@ -1,14 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
 :root {
-  --primary-color: #118eea; /* DANA-like Blue */
-  --primary-dark: #0a6bba;
-  --secondary-color: #0b192c;
-  --background: #ffffff;
-  --bg-main: #ffffff;
-  --bg-secondary: #f4f7fe;
-  --text-main: #1e293b;
-  --text-muted: #64748b;
-  --card-shadow: 0 10px 40px -10px rgba(17, 142, 234, 0.15);
-  --border-light: #e2e8f0;
+  --primary-color: #0d1117; /* Sleek Dark Theme */
+  --primary-dark: #010409;
+  --secondary-color: #161b22;
+  --accent-color: #3b82f6; /* Electric Blue Accent */
+  --accent-glow: rgba(59, 130, 246, 0.4);
+  --background: #010409;
+  
+  --bg-main: #0d1117;
+  --bg-secondary: #161b22;
+  --text-main: #f0f6fc;
+  --text-muted: #8b949e;
+  
+  --card-bg: rgba(22, 27, 34, 0.6);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --glass-blur: blur(16px);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 * {
@@ -18,12 +27,13 @@
 }
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background-color: var(--bg-main);
+  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+  background-color: var(--background);
   color: var(--text-main);
   min-height: 100vh;
   line-height: 1.6;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
 a {
@@ -32,53 +42,69 @@ a {
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
   padding: 0 2rem;
 }
 
 /* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.8s ease-out forwards;
+  animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--primary-color);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
-  padding: 0.875rem 1.5rem;
-  border-radius: 999px;
+  padding: 1rem 2rem;
+  border-radius: 12px;
   font-weight: 600;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  border: none;
+  font-size: 1.05rem;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
-  box-shadow: 0 4px 14px 0 rgba(17, 142, 234, 0.39);
+  box-shadow: 0 10px 25px -5px var(--accent-glow);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .btn:hover {
-  background: var(--primary-dark);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(17, 142, 234, 0.23);
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px -5px var(--accent-glow);
+}
+
+.btn:hover::after {
+  opacity: 1;
 }
 
 .btn-outline {
-  background: transparent;
-  color: var(--primary-color);
-  border: 2px solid var(--primary-color);
+  background: rgba(255,255,255,0.03);
+  color: var(--text-main);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: none;
+  backdrop-filter: blur(8px);
 }
 
 .btn-outline:hover {
-  background: rgba(17, 142, 234, 0.05);
-  color: var(--primary-dark);
-  border-color: var(--primary-dark);
-  box-shadow: none;
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
 }
