@@ -1,17 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import appsData from "../../../data/apps.json";
+import { supabase } from "../../../lib/supabase";
 import styles from "./privacy.module.css";
 
-// Fungsi untuk Cloudflare Pages (Static Export) agar menghasilkan semua route saat build time
-export function generateStaticParams() {
-  return appsData.map((app) => ({
-    appId: app.id,
-  }));
-}
+export const revalidate = 0; // Force dynamic for now
 
-export function generateMetadata({ params }) {
-  const app = appsData.find((a) => a.id === params.appId);
+export async function generateMetadata({ params }) {
+  const { data: app } = await supabase
+    .from('apps')
+    .select('name')
+    .eq('id', params.appId)
+    .single();
+
   if (!app) return { title: "Not Found" };
   
   return {
@@ -34,8 +34,12 @@ function renderMarkdown(text) {
   });
 }
 
-export default function PrivacyPolicyPage({ params }) {
-  const app = appsData.find((a) => a.id === params.appId);
+export default async function PrivacyPolicyPage({ params }) {
+  const { data: app } = await supabase
+    .from('apps')
+    .select('*')
+    .eq('id', params.appId)
+    .single();
 
   if (!app) {
     notFound();

@@ -1,13 +1,22 @@
 import Link from "next/link";
-import appsData from "../data/apps.json";
+import { supabase } from "../lib/supabase";
 import styles from "./page.module.css";
+
+export const revalidate = 0; // Force dynamic for now, or use ISR with revalidate = 60
 
 export const metadata = {
   title: "Aplikasi Android Profesional",
   description: "Jelajahi berbagai aplikasi Android berkualitas dari kami.",
 };
 
-export default function Home() {
+export default async function Home() {
+  const { data: appsData, error } = await supabase
+    .from('apps')
+    .select('*')
+    .order('created_at', { ascending: true });
+
+  const apps = appsData || [];
+
   return (
     <div className="animate-fade-in">
       <main>
@@ -46,7 +55,7 @@ export default function Home() {
               <h2>Jelajahi Ekosistem Kami</h2>
             </div>
             <div className={styles.grid}>
-              {appsData.map((app) => (
+              {apps.map((app) => (
                 <div key={app.id} className={styles.appCard}>
                   <div className={styles.appHeader}>
                     <div className={styles.appIconWrapper}>
