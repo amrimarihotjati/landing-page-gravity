@@ -72,6 +72,62 @@
   fill: var(--background);
 }
 
+/* Missing Hero Classes Re-added */
+.title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+  line-height: 1.2;
+  text-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.title span {
+  color: #fbbf24;
+}
+
+.subtitle {
+  font-size: 1.25rem;
+  color: var(--text-muted);
+  max-width: 600px;
+  margin: 0 auto 3rem auto;
+}
+
+.waveContainer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
+  line-height: 0;
+}
+
+.waveContainer svg {
+  position: relative;
+  display: block;
+  width: calc(100% + 1.3px);
+  height: 80px;
+  transform: rotateY(180deg);
+}
+
+.heroImageWrapper {
+  margin-top: 3rem;
+  display: flex;
+  justify-content: center;
+}
+
+.heroImage {
+  width: 100%;
+  max-width: 320px;
+  filter: drop-shadow(0 20px 30px rgba(0,0,0,0.2));
+  animation: float 6s ease-in-out infinite;
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+
 .appsSection {
   padding: 4rem 2rem 6rem 2rem;
   max-width: 1200px;

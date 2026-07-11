@@ -115,8 +115,8 @@ export default function AdminPage() {
         name: "",
         description: "",
         icon: "",
-        playStoreLink: "",
-        privacyPolicy: "# Privacy Policy",
+        playstorelink: "",
+        privacypolicy: "# Privacy Policy",
         screenshots: [],
         isNew: true
       });
@@ -137,8 +137,8 @@ export default function AdminPage() {
         name: currentApp.name,
         description: currentApp.description,
         icon: currentApp.icon,
-        playStoreLink: currentApp.playStoreLink,
-        privacyPolicy: currentApp.privacyPolicy,
+        playstorelink: currentApp.playstorelink,
+        privacypolicy: currentApp.privacypolicy,
         screenshots: currentApp.screenshots || []
       };
 
@@ -278,7 +278,7 @@ export default function AdminPage() {
               </div>
               <div className={styles.formGroup}>
                 <label>Play Store Link</label>
-                <input className={styles.input} value={currentApp.playStoreLink} onChange={(e) => setCurrentApp({...currentApp, playStoreLink: e.target.value})} />
+                <input className={styles.input} value={currentApp.playstorelink} onChange={(e) => setCurrentApp({...currentApp, playstorelink: e.target.value})} />
               </div>
               
               <div className={styles.formGroup}>
@@ -317,7 +317,7 @@ export default function AdminPage() {
 
               <div className={styles.formGroup}>
                 <label>Privacy Policy (Markdown)</label>
-                <textarea className={`${styles.textarea} ${styles.textareaCode}`} value={currentApp.privacyPolicy} onChange={(e) => setCurrentApp({...currentApp, privacyPolicy: e.target.value})} />
+                <textarea className={`${styles.textarea} ${styles.textareaCode}`} value={currentApp.privacypolicy} onChange={(e) => setCurrentApp({...currentApp, privacypolicy: e.target.value})} />
               </div>
 
               {message.text && (

@@ -79,9 +79,9 @@ export default async function Home() {
                   )}
 
                   <div className={styles.cardFooter}>
-                    {app.playStoreLink && (
+                    {app.playstorelink && (
                       <a 
-                        href={app.playStoreLink} 
+                        href={app.playstorelink} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className={styles.playStoreBtn}
