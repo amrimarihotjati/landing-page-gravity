@@ -1,37 +1,79 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+/* ================================================================
+   GLOBALS — CSS Reset + Design Tokens Only
+   No component-level classes here. Use CSS Modules for components.
+   ================================================================ */
 
-:root {
-  --primary-color: #118eea; /* DANA Blue */
-  --primary-dark: #0a6bba;
-  --secondary-color: #f4f7fe; /* Light Blue BG */
-  --accent-color: #f59e0b;
-  --background: #ffffff;
-  
-  --bg-main: #ffffff;
-  --bg-secondary: #f8fafc;
-  --text-main: #1e293b;
-  --text-muted: #64748b;
-  
-  --card-bg: #ffffff;
-  --card-border: #e2e8f0;
-  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  --card-shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-* {
+/* Reset */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background-color: var(--background);
-  color: var(--text-main);
-  min-height: 100vh;
-  line-height: 1.6;
-  overflow-x: hidden;
+/* Design Tokens */
+:root {
+  /* Colors — DANA palette */
+  --color-primary: #108ee9;
+  --color-primary-dark: #0b6fbd;
+  --color-primary-light: #e8f4fd;
+
+  --color-bg: #ffffff;
+  --color-bg-alt: #f5f8ff;
+  --color-bg-footer: #0b1d3a;
+
+  --color-text-heading: #1a1a2e;
+  --color-text-body: #555770;
+  --color-text-muted: #8e90a6;
+  --color-text-inverse: #ffffff;
+
+  --color-border: #e4e7ed;
+  --color-success: #10b981;
+  --color-danger: #ef4444;
+
+  /* Spacing scale */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+  --space-4xl: 80px;
+
+  /* Layout */
+  --container-max: 1200px;
+  --container-pad: 40px;
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.1);
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+}
+
+/* Base */
+html {
+  scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text-body);
+  line-height: 1.6;
+  min-height: 100vh;
 }
 
 a {
@@ -39,55 +81,23 @@ a {
   text-decoration: none;
 }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
+img {
+  max-width: 100%;
+  display: block;
 }
 
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+button {
+  font-family: inherit;
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.8s ease-out forwards;
-}
-
-/* Buttons */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--primary-color);
-  color: white;
-  padding: 0.875rem 1.75rem;
-  border-radius: 999px;
-  font-weight: 600;
-  font-size: 1rem;
-  transition: all 0.2s ease;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 4px 14px 0 rgba(17, 142, 234, 0.39);
-}
-
-.btn:hover {
-  background: var(--primary-dark);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(17, 142, 234, 0.23);
-}
-
-.btn-outline {
-  background: transparent;
-  color: var(--primary-color);
-  border: 2px solid var(--primary-color);
-  box-shadow: none;
-}
-
-.btn-outline:hover {
-  background: rgba(17, 142, 234, 0.05);
-  color: var(--primary-dark);
-  border-color: var(--primary-dark);
-  transform: translateY(-2px);
+/* Utility — only truly global helpers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
 }

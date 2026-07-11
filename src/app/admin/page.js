@@ -1,121 +1,128 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
-import styles from "./admin.module.css";
+import s from "./admin.module.css";
 
 export default function AdminPage() {
+  /* ── Auth State ── */
   const [session, setSession] = useState(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  
-  const [activeTab, setActiveTab] = useState("list"); // 'list', 'editor', 'settings', 'pages', 'page_editor'
+
+  /* ── Data State ── */
+  const [activeTab, setActiveTab] = useState("list");
   const [apps, setApps] = useState([]);
   const [pages, setPages] = useState([]);
   const [appAds, setAppAds] = useState("");
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
-  
-  // Editor State
+
+  /* ── Editor State ── */
   const [currentApp, setCurrentApp] = useState(null);
   const [currentPageData, setCurrentPageData] = useState(null);
 
+  /* ================================================================
+     Auth
+     ================================================================ */
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) fetchData();
+    supabase.auth.getSession().then(({ data: { session: s } }) => {
+      setSession(s);
+      if (s) fetchData();
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session) fetchData();
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s);
+      if (s) fetchData();
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchData = async () => {
-    const { data: appsData } = await supabase
-      .from('apps')
-      .select('*')
-      .order('created_at', { ascending: true });
-    if (appsData) setApps(appsData);
-
-    const { data: pagesData } = await supabase
-      .from('pages')
-      .select('*')
-      .order('created_at', { ascending: true });
-    if (pagesData) setPages(pagesData);
-
-    const { data: settingsData } = await supabase
-      .from('settings')
-      .select('value')
-      .eq('key', 'app-ads')
-      .single();
-    if (settingsData) setAppAds(settingsData.value);
-  };
-
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
     if (error) setMessage({ text: error.message, type: "error" });
     else setMessage({ text: "", type: "" });
     setLoading(false);
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
+  const handleLogout = () => supabase.auth.signOut();
+
+  /* ================================================================
+     Data Fetching
+     ================================================================ */
+  const fetchData = async () => {
+    const [appsRes, pagesRes, settingsRes] = await Promise.all([
+      supabase.from("apps").select("*").order("created_at", { ascending: true }),
+      supabase.from("pages").select("*").order("created_at", { ascending: true }),
+      supabase.from("settings").select("value").eq("key", "app-ads").single(),
+    ]);
+
+    if (appsRes.data) setApps(appsRes.data);
+    if (pagesRes.data) setPages(pagesRes.data);
+    if (settingsRes.data) setAppAds(settingsRes.data.value);
   };
 
+  /* ================================================================
+     File Upload
+     ================================================================ */
   const handleFileUpload = async (e, type) => {
     try {
       setUploading(true);
       const files = e.target.files;
-      if (!files || files.length === 0) return;
+      if (!files?.length) return;
 
       const uploadedUrls = [];
-      
+
       for (const file of files) {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Math.random()}.${fileExt}`;
-        const filePath = `${fileName}`;
+        const ext = file.name.split(".").pop();
+        const path = `${Math.random()}.${ext}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from('assets')
-          .upload(filePath, file);
+        const { error } = await supabase.storage
+          .from("assets")
+          .upload(path, file);
+        if (error) throw error;
 
-        if (uploadError) throw uploadError;
-        
-        const { data } = supabase.storage.from('assets').getPublicUrl(filePath);
+        const { data } = supabase.storage.from("assets").getPublicUrl(path);
         uploadedUrls.push(data.publicUrl);
       }
 
-      if (type === 'icon') {
-        setCurrentApp({ ...currentApp, icon: uploadedUrls[0] });
-      } else if (type === 'screenshots') {
-        const existing = currentApp.screenshots || [];
-        setCurrentApp({ ...currentApp, screenshots: [...existing, ...uploadedUrls] });
+      if (type === "icon") {
+        setCurrentApp((prev) => ({ ...prev, icon: uploadedUrls[0] }));
+      } else if (type === "screenshots") {
+        setCurrentApp((prev) => ({
+          ...prev,
+          screenshots: [...(prev.screenshots || []), ...uploadedUrls],
+        }));
       }
-      
-    } catch (error) {
-      alert('Error uploading image: ' + error.message);
+    } catch (err) {
+      alert("Error uploading: " + err.message);
     } finally {
       setUploading(false);
     }
   };
 
-  const removeScreenshot = (indexToRemove) => {
-    const updatedSS = currentApp.screenshots.filter((_, idx) => idx !== indexToRemove);
-    setCurrentApp({ ...currentApp, screenshots: updatedSS });
+  const removeScreenshot = (index) => {
+    setCurrentApp((prev) => ({
+      ...prev,
+      screenshots: prev.screenshots.filter((_, i) => i !== index),
+    }));
   };
 
-  // --- App Editor Logic ---
+  /* ================================================================
+     App CRUD
+     ================================================================ */
   const openAppEditor = (app) => {
-    if (app) {
-      setCurrentApp(app);
-    } else {
-      setCurrentApp({
+    setCurrentApp(
+      app || {
         id: "",
         name: "",
         description: "",
@@ -123,43 +130,41 @@ export default function AdminPage() {
         playstorelink: "",
         customprivacylink: "",
         screenshots: [],
-        isNew: true
-      });
-    }
+        isNew: true,
+      }
+    );
     setActiveTab("editor");
     setMessage({ text: "", type: "" });
   };
 
   const handleSaveApp = async () => {
     if (!currentApp.id || !currentApp.name) {
-      setMessage({ text: "ID dan Nama Aplikasi wajib diisi", type: "error" });
+      setMessage({ text: "ID dan Nama Aplikasi wajib diisi.", type: "error" });
       return;
     }
     setLoading(true);
     try {
-      const appData = {
+      const payload = {
         id: currentApp.id,
         name: currentApp.name,
         description: currentApp.description,
         icon: currentApp.icon,
         playstorelink: currentApp.playstorelink,
         customprivacylink: currentApp.customprivacylink,
-        screenshots: currentApp.screenshots || []
+        screenshots: currentApp.screenshots || [],
       };
 
-      if (currentApp.isNew) {
-        const { error } = await supabase.from('apps').insert([appData]);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from('apps').update(appData).eq('id', currentApp.id);
-        if (error) throw error;
-      }
-      
+      const { error } = currentApp.isNew
+        ? await supabase.from("apps").insert([payload])
+        : await supabase.from("apps").update(payload).eq("id", currentApp.id);
+
+      if (error) throw error;
+
       setMessage({ text: "Aplikasi berhasil disimpan!", type: "success" });
       await fetchData();
-      setTimeout(() => setActiveTab("list"), 1500);
-    } catch (error) {
-      setMessage({ text: error.message, type: "error" });
+      setTimeout(() => setActiveTab("list"), 1200);
+    } catch (err) {
+      setMessage({ text: err.message, type: "error" });
     }
     setLoading(false);
   };
@@ -167,30 +172,30 @@ export default function AdminPage() {
   const handleDeleteApp = async (id) => {
     if (!confirm("Yakin ingin menghapus aplikasi ini?")) return;
     setLoading(true);
-    await supabase.from('apps').delete().eq('id', id);
+    await supabase.from("apps").delete().eq("id", id);
     await fetchData();
     setLoading(false);
   };
 
-  // --- Page Editor Logic ---
+  /* ================================================================
+     Page CRUD
+     ================================================================ */
   const openPageEditor = (page) => {
-    if (page) {
-      setCurrentPageData(page);
-    } else {
-      setCurrentPageData({
+    setCurrentPageData(
+      page || {
         slug: "",
         title: "",
-        content: "# Tulis isi artikel/halaman Anda di sini",
-        isNew: true
-      });
-    }
+        content: "# Judul\n\nTulis isi halaman di sini.",
+        isNew: true,
+      }
+    );
     setActiveTab("page_editor");
     setMessage({ text: "", type: "" });
   };
 
   const handleSavePage = async () => {
     if (!currentPageData.slug || !currentPageData.title) {
-      setMessage({ text: "Slug dan Judul wajib diisi", type: "error" });
+      setMessage({ text: "Slug dan Judul wajib diisi.", type: "error" });
       return;
     }
     setLoading(true);
@@ -198,22 +203,23 @@ export default function AdminPage() {
       const payload = {
         slug: currentPageData.slug,
         title: currentPageData.title,
-        content: currentPageData.content
+        content: currentPageData.content,
       };
 
-      if (currentPageData.isNew) {
-        const { error } = await supabase.from('pages').insert([payload]);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from('pages').update(payload).eq('slug', currentPageData.slug);
-        if (error) throw error;
-      }
-      
+      const { error } = currentPageData.isNew
+        ? await supabase.from("pages").insert([payload])
+        : await supabase
+            .from("pages")
+            .update(payload)
+            .eq("slug", currentPageData.slug);
+
+      if (error) throw error;
+
       setMessage({ text: "Halaman berhasil disimpan!", type: "success" });
       await fetchData();
-      setTimeout(() => setActiveTab("pages"), 1500);
-    } catch (error) {
-      setMessage({ text: error.message, type: "error" });
+      setTimeout(() => setActiveTab("pages"), 1200);
+    } catch (err) {
+      setMessage({ text: err.message, type: "error" });
     }
     setLoading(false);
   };
@@ -221,34 +227,71 @@ export default function AdminPage() {
   const handleDeletePage = async (slug) => {
     if (!confirm("Yakin ingin menghapus halaman ini?")) return;
     setLoading(true);
-    await supabase.from('pages').delete().eq('slug', slug);
+    await supabase.from("pages").delete().eq("slug", slug);
     await fetchData();
     setLoading(false);
   };
 
+  /* ================================================================
+     Settings
+     ================================================================ */
   const handleSaveSettings = async () => {
     setLoading(true);
-    const { error } = await supabase.from('settings').upsert([{ key: 'app-ads', value: appAds }]);
-    if (error) setMessage({ text: error.message, type: "error" });
-    else setMessage({ text: "Pengaturan berhasil disimpan!", type: "success" });
+    const { error } = await supabase
+      .from("settings")
+      .upsert([{ key: "app-ads", value: appAds }]);
+    setMessage(
+      error
+        ? { text: error.message, type: "error" }
+        : { text: "Pengaturan berhasil disimpan!", type: "success" }
+    );
     setLoading(false);
   };
 
+  /* ================================================================
+     Shared UI Helpers
+     ================================================================ */
+  const MessageBanner = () =>
+    message.text ? (
+      <div className={`${s.message} ${s[message.type]}`}>{message.text}</div>
+    ) : null;
+
+  /* ================================================================
+     RENDER — Login
+     ================================================================ */
   if (!session) {
     return (
-      <div className={styles.loginContainer}>
-        <div className={styles.loginCard}>
-          <h2>Login CMS</h2>
+      <div className={s.loginContainer}>
+        <div className={s.loginCard}>
+          <h2>Admin Login</h2>
           <form onSubmit={handleLogin}>
-            <div className={styles.formGroup}>
-              <input type="email" placeholder="Email" className={styles.input} value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <div className={s.formGroup}>
+              <input
+                type="email"
+                placeholder="Email"
+                className={s.input}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
             </div>
-            <div className={styles.formGroup}>
-              <input type="password" placeholder="Password" className={styles.input} value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <div className={s.formGroup}>
+              <input
+                type="password"
+                placeholder="Password"
+                className={s.input}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
             </div>
-            {message.text && <p style={{color: 'red', marginBottom: '1rem', fontSize: '0.9rem'}}>{message.text}</p>}
-            <button type="submit" className={`${styles.btn} ${styles.btnFull}`} disabled={loading} style={{width: '100%'}}>
-              {loading ? 'Loading...' : 'Masuk'}
+            {message.text && <p className={s.loginError}>{message.text}</p>}
+            <button
+              type="submit"
+              className={`${s.btn} ${s.btnFull}`}
+              disabled={loading}
+            >
+              {loading ? "Loading..." : "Masuk"}
             </button>
           </form>
         </div>
@@ -256,59 +299,95 @@ export default function AdminPage() {
     );
   }
 
+  /* ================================================================
+     RENDER — Dashboard
+     ================================================================ */
   return (
-    <div className={styles.cmsContainer}>
-      <div className={styles.sidebar}>
-        <div className={styles.sidebarHeader}>
-          <h2>Admin Dashboard</h2>
+    <div className={s.cmsContainer}>
+      {/* ── Sidebar ── */}
+      <aside className={s.sidebar}>
+        <div className={s.sidebarHeader}>
+          <h2>Admin CMS</h2>
         </div>
-        <div className={styles.navMenu}>
-          <div className={`${styles.navItem} ${activeTab === 'list' || activeTab === 'editor' ? styles.active : ''}`} onClick={() => setActiveTab('list')}>
-            📦 Daftar Aplikasi
+        <nav className={s.navMenu}>
+          <div
+            className={`${s.navItem} ${activeTab === "list" || activeTab === "editor" ? s.active : ""}`}
+            onClick={() => setActiveTab("list")}
+          >
+            📦 Aplikasi
           </div>
-          <div className={`${styles.navItem} ${activeTab === 'pages' || activeTab === 'page_editor' ? styles.active : ''}`} onClick={() => setActiveTab('pages')}>
-            📄 Halaman (Artikel)
+          <div
+            className={`${s.navItem} ${activeTab === "pages" || activeTab === "page_editor" ? s.active : ""}`}
+            onClick={() => setActiveTab("pages")}
+          >
+            📄 Halaman
           </div>
-          <div className={`${styles.navItem} ${activeTab === 'settings' ? styles.active : ''}`} onClick={() => setActiveTab('settings')}>
-            ⚙️ Pengaturan Web
+          <div
+            className={`${s.navItem} ${activeTab === "settings" ? s.active : ""}`}
+            onClick={() => setActiveTab("settings")}
+          >
+            ⚙️ Pengaturan
           </div>
+        </nav>
+        <div className={s.sidebarFooter}>
+          <button className={`${s.btnSecondary} ${s.btnFull}`} onClick={handleLogout}>
+            Logout
+          </button>
         </div>
-        <div className={styles.sidebarFooter}>
-          <button className={styles.btnSecondary} onClick={handleLogout} style={{width: '100%'}}>Logout</button>
-        </div>
-      </div>
+      </aside>
 
-      <div className={styles.mainContent}>
-        {/* Tab: Daftar Aplikasi */}
-        {activeTab === 'list' && (
+      {/* ── Main ── */}
+      <main className={s.mainContent}>
+        {/* ---------- App List ---------- */}
+        {activeTab === "list" && (
           <>
-            <div className={styles.pageHeader}>
+            <div className={s.pageHeader}>
               <h1>Daftar Aplikasi</h1>
-              <button className={styles.btn} onClick={() => openAppEditor(null)}>+ Tambah Aplikasi</button>
+              <button className={s.btn} onClick={() => openAppEditor(null)}>
+                + Tambah
+              </button>
             </div>
-            <div className={styles.card}>
-              <div className={styles.tableContainer}>
-                <table className={styles.table}>
+            <div className={s.card}>
+              <div className={s.tableContainer}>
+                <table className={s.table}>
                   <thead>
                     <tr>
-                      <th>Nama Aplikasi</th>
-                      <th>Slug (ID)</th>
+                      <th>Nama</th>
+                      <th>Slug</th>
                       <th>Aksi</th>
                     </tr>
                   </thead>
                   <tbody>
                     {apps.length === 0 ? (
-                      <tr><td colSpan="3" style={{textAlign: 'center', padding: '2rem'}}>Belum ada aplikasi.</td></tr>
-                    ) : apps.map(app => (
-                      <tr key={app.id}>
-                        <td><strong>{app.name}</strong></td>
-                        <td>{app.id}</td>
-                        <td>
-                          <button className={`${styles.btnSecondary} ${styles.btnSmall}`} onClick={() => openAppEditor(app)} style={{marginRight: '8px'}}>Edit</button>
-                          <button className={`${styles.btnDanger} ${styles.btnSmall}`} onClick={() => handleDeleteApp(app.id)}>Hapus</button>
+                      <tr>
+                        <td colSpan="3" className={s.emptyRow}>
+                          Belum ada aplikasi.
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      apps.map((app) => (
+                        <tr key={app.id}>
+                          <td>
+                            <strong>{app.name}</strong>
+                          </td>
+                          <td>{app.id}</td>
+                          <td>
+                            <button
+                              className={`${s.btnSecondary} ${s.btnSmall}`}
+                              onClick={() => openAppEditor(app)}
+                            >
+                              Edit
+                            </button>{" "}
+                            <button
+                              className={`${s.btnDanger} ${s.btnSmall}`}
+                              onClick={() => handleDeleteApp(app.id)}
+                            >
+                              Hapus
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -316,114 +395,222 @@ export default function AdminPage() {
           </>
         )}
 
-        {/* Tab: Editor Aplikasi */}
-        {activeTab === 'editor' && currentApp && (
+        {/* ---------- App Editor ---------- */}
+        {activeTab === "editor" && currentApp && (
           <>
-            <div className={styles.pageHeader}>
-              <h1>{currentApp.isNew ? 'Tambah Aplikasi Baru' : 'Edit Aplikasi'}</h1>
-              <button className={styles.btnSecondary} onClick={() => setActiveTab('list')}>KEMBALI</button>
+            <p className={s.breadcrumb}>Aplikasi / {currentApp.isNew ? "Baru" : currentApp.name}</p>
+            <div className={s.pageHeader}>
+              <h1>{currentApp.isNew ? "Tambah Aplikasi" : "Edit Aplikasi"}</h1>
+              <button className={s.btnSecondary} onClick={() => setActiveTab("list")}>
+                ← Kembali
+              </button>
             </div>
-            <div className={styles.card}>
-              <div className={styles.formGroup}>
-                <label>ID / Slug URL (Harus Unik, tanpa spasi)</label>
-                <input className={styles.input} value={currentApp.id} onChange={(e) => setCurrentApp({...currentApp, id: e.target.value})} disabled={!currentApp.isNew} placeholder="misal: harga-emas" />
+            <div className={s.card}>
+              {/* ID */}
+              <div className={s.formGroup}>
+                <label className={s.label}>ID / Slug URL</label>
+                <input
+                  className={s.input}
+                  value={currentApp.id}
+                  onChange={(e) =>
+                    setCurrentApp({ ...currentApp, id: e.target.value })
+                  }
+                  disabled={!currentApp.isNew}
+                  placeholder="contoh: harga-emas"
+                />
               </div>
-              <div className={styles.formGroup}>
-                <label>Nama Aplikasi</label>
-                <input className={styles.input} value={currentApp.name} onChange={(e) => setCurrentApp({...currentApp, name: e.target.value})} />
+
+              {/* Name */}
+              <div className={s.formGroup}>
+                <label className={s.label}>Nama Aplikasi</label>
+                <input
+                  className={s.input}
+                  value={currentApp.name}
+                  onChange={(e) =>
+                    setCurrentApp({ ...currentApp, name: e.target.value })
+                  }
+                />
               </div>
-              <div className={styles.formGroup}>
-                <label>Deskripsi Singkat</label>
-                <textarea className={styles.textarea} value={currentApp.description} onChange={(e) => setCurrentApp({...currentApp, description: e.target.value})} />
+
+              {/* Description */}
+              <div className={s.formGroup}>
+                <label className={s.label}>Deskripsi</label>
+                <textarea
+                  className={s.textarea}
+                  value={currentApp.description}
+                  onChange={(e) =>
+                    setCurrentApp({ ...currentApp, description: e.target.value })
+                  }
+                />
               </div>
-              <div className={styles.formGroup}>
-                <label>Play Store Link</label>
-                <input className={styles.input} value={currentApp.playstorelink} onChange={(e) => setCurrentApp({...currentApp, playstorelink: e.target.value})} />
+
+              {/* Play Store */}
+              <div className={s.formGroup}>
+                <label className={s.label}>Link Play Store</label>
+                <input
+                  className={s.input}
+                  value={currentApp.playstorelink}
+                  onChange={(e) =>
+                    setCurrentApp({
+                      ...currentApp,
+                      playstorelink: e.target.value,
+                    })
+                  }
+                  placeholder="https://play.google.com/store/apps/details?id=..."
+                />
               </div>
-              
-              <div className={styles.formGroup}>
-                <label>Ikon Aplikasi (Bisa ketik Emoji, link URL, atau Upload)</label>
-                <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
-                  <input className={styles.input} value={currentApp.icon} onChange={(e) => setCurrentApp({...currentApp, icon: e.target.value})} style={{flex: 1}} />
-                  <label className={styles.btnSecondary} style={{cursor: 'pointer', margin: 0}}>
-                    {uploading ? 'Uploading...' : 'Upload Icon'}
-                    <input type="file" accept="image/*" hidden onChange={(e) => handleFileUpload(e, 'icon')} disabled={uploading} />
+
+              {/* Icon */}
+              <div className={s.formGroup}>
+                <label className={s.label}>Ikon Aplikasi</label>
+                <div className={s.iconRow}>
+                  <input
+                    className={`${s.input} ${s.iconRowInput}`}
+                    value={currentApp.icon}
+                    onChange={(e) =>
+                      setCurrentApp({ ...currentApp, icon: e.target.value })
+                    }
+                    placeholder="Emoji, URL, atau upload"
+                  />
+                  <label className={s.btnUpload}>
+                    {uploading ? "Uploading..." : "Upload"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      hidden
+                      onChange={(e) => handleFileUpload(e, "icon")}
+                      disabled={uploading}
+                    />
                   </label>
                 </div>
-                {currentApp.icon && currentApp.icon.startsWith('http') && (
-                  <img src={currentApp.icon} alt="Icon Preview" className={styles.imagePreview} style={{marginTop: '10px', width: '60px', height: '60px', borderRadius: '12px'}} />
+                {currentApp.icon?.startsWith("http") && (
+                  <img
+                    src={currentApp.icon}
+                    alt="Icon"
+                    className={s.iconPreview}
+                  />
                 )}
               </div>
 
-              <div className={styles.formGroup}>
-                <label>Screenshots (Galeri)</label>
-                <div className={styles.uploadBox}>
-                  <label style={{cursor: 'pointer', display: 'block'}}>
-                    {uploading ? 'Sedang Mengunggah...' : 'Klik di sini untuk upload banyak gambar (Screenshots)'}
-                    <input type="file" accept="image/*" multiple hidden onChange={(e) => handleFileUpload(e, 'screenshots')} disabled={uploading} />
-                  </label>
-                </div>
-                {currentApp.screenshots && currentApp.screenshots.length > 0 && (
-                  <div className={styles.gallery}>
-                    {currentApp.screenshots.map((url, idx) => (
-                      <div key={idx} className={styles.imagePreviewWrapper}>
-                        <img src={url} alt={`Screenshot ${idx}`} className={styles.imagePreview} />
-                        <button className={styles.deleteImageBtn} onClick={() => removeScreenshot(idx)}>✕</button>
+              {/* Screenshots */}
+              <div className={s.formGroup}>
+                <label className={s.label}>Screenshots</label>
+                <label className={s.uploadBox}>
+                  {uploading
+                    ? "Sedang mengunggah..."
+                    : "Klik untuk upload gambar (bisa pilih banyak)"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    hidden
+                    onChange={(e) => handleFileUpload(e, "screenshots")}
+                    disabled={uploading}
+                  />
+                </label>
+                {currentApp.screenshots?.length > 0 && (
+                  <div className={s.gallery}>
+                    {currentApp.screenshots.map((url, i) => (
+                      <div key={i} className={s.imagePreviewWrapper}>
+                        <img
+                          src={url}
+                          alt={`SS ${i}`}
+                          className={s.imagePreview}
+                        />
+                        <button
+                          className={s.deleteImageBtn}
+                          onClick={() => removeScreenshot(i)}
+                        >
+                          ✕
+                        </button>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
 
-              <div className={styles.formGroup}>
-                <label>Tautan Privacy Policy</label>
-                <div style={{fontSize: '0.85rem', color: '#6b7280', marginBottom: '8px'}}>
-                  Ketik URL eksternal (https://...) ATAU ketik path lokal dari Halaman CMS Anda (misal: <strong>/page/kebijakan-privasi</strong>).
-                </div>
-                <input className={styles.input} placeholder="/page/slug-halaman atau https://..." value={currentApp.customprivacylink || ''} onChange={(e) => setCurrentApp({...currentApp, customprivacylink: e.target.value})} />
+              {/* Privacy Link */}
+              <div className={s.formGroup}>
+                <label className={s.label}>Tautan Privacy Policy</label>
+                <p className={s.hint}>
+                  URL eksternal (https://...) atau path halaman CMS
+                  (/page/slug-halaman)
+                </p>
+                <input
+                  className={s.input}
+                  placeholder="/page/kebijakan-privasi atau https://..."
+                  value={currentApp.customprivacylink || ""}
+                  onChange={(e) =>
+                    setCurrentApp({
+                      ...currentApp,
+                      customprivacylink: e.target.value,
+                    })
+                  }
+                />
               </div>
 
-              {message.text && (
-                <div className={`${styles.message} ${styles[message.type]}`}>{message.text}</div>
-              )}
-              
-              <button className={styles.btn} onClick={handleSaveApp} disabled={loading || uploading}>
+              <MessageBanner />
+              <button
+                className={s.btn}
+                onClick={handleSaveApp}
+                disabled={loading || uploading}
+              >
                 {loading ? "Menyimpan..." : "Simpan Aplikasi"}
               </button>
             </div>
           </>
         )}
 
-        {/* Tab: Daftar Halaman */}
-        {activeTab === 'pages' && (
+        {/* ---------- Pages List ---------- */}
+        {activeTab === "pages" && (
           <>
-            <div className={styles.pageHeader}>
-              <h1>Daftar Halaman (Privacy & Artikel)</h1>
-              <button className={styles.btn} onClick={() => openPageEditor(null)}>+ Buat Halaman Baru</button>
+            <div className={s.pageHeader}>
+              <h1>Halaman</h1>
+              <button className={s.btn} onClick={() => openPageEditor(null)}>
+                + Buat Halaman
+              </button>
             </div>
-            <div className={styles.card}>
-              <div className={styles.tableContainer}>
-                <table className={styles.table}>
+            <div className={s.card}>
+              <div className={s.tableContainer}>
+                <table className={s.table}>
                   <thead>
                     <tr>
-                      <th>Judul Halaman</th>
-                      <th>URL Path</th>
+                      <th>Judul</th>
+                      <th>URL</th>
                       <th>Aksi</th>
                     </tr>
                   </thead>
                   <tbody>
                     {pages.length === 0 ? (
-                      <tr><td colSpan="3" style={{textAlign: 'center', padding: '2rem'}}>Belum ada halaman.</td></tr>
-                    ) : pages.map(page => (
-                      <tr key={page.slug}>
-                        <td><strong>{page.title}</strong></td>
-                        <td>/page/{page.slug}</td>
-                        <td>
-                          <button className={`${styles.btnSecondary} ${styles.btnSmall}`} onClick={() => openPageEditor(page)} style={{marginRight: '8px'}}>Edit</button>
-                          <button className={`${styles.btnDanger} ${styles.btnSmall}`} onClick={() => handleDeletePage(page.slug)}>Hapus</button>
+                      <tr>
+                        <td colSpan="3" className={s.emptyRow}>
+                          Belum ada halaman.
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      pages.map((pg) => (
+                        <tr key={pg.slug}>
+                          <td>
+                            <strong>{pg.title}</strong>
+                          </td>
+                          <td>/page/{pg.slug}</td>
+                          <td>
+                            <button
+                              className={`${s.btnSecondary} ${s.btnSmall}`}
+                              onClick={() => openPageEditor(pg)}
+                            >
+                              Edit
+                            </button>{" "}
+                            <button
+                              className={`${s.btnDanger} ${s.btnSmall}`}
+                              onClick={() => handleDeletePage(pg.slug)}
+                            >
+                              Hapus
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -431,59 +618,104 @@ export default function AdminPage() {
           </>
         )}
 
-        {/* Tab: Editor Halaman */}
-        {activeTab === 'page_editor' && currentPageData && (
+        {/* ---------- Page Editor ---------- */}
+        {activeTab === "page_editor" && currentPageData && (
           <>
-            <div className={styles.pageHeader}>
-              <h1>{currentPageData.isNew ? 'Buat Halaman Baru' : 'Edit Halaman'}</h1>
-              <button className={styles.btnSecondary} onClick={() => setActiveTab('pages')}>KEMBALI</button>
+            <p className={s.breadcrumb}>
+              Halaman / {currentPageData.isNew ? "Baru" : currentPageData.title}
+            </p>
+            <div className={s.pageHeader}>
+              <h1>
+                {currentPageData.isNew ? "Buat Halaman" : "Edit Halaman"}
+              </h1>
+              <button
+                className={s.btnSecondary}
+                onClick={() => setActiveTab("pages")}
+              >
+                ← Kembali
+              </button>
             </div>
-            <div className={styles.card}>
-              <div className={styles.formGroup}>
-                <label>Slug URL (Harus Unik, tanpa spasi)</label>
-                <input className={styles.input} value={currentPageData.slug} onChange={(e) => setCurrentPageData({...currentPageData, slug: e.target.value})} disabled={!currentPageData.isNew} placeholder="misal: kebijakan-privasi-1" />
+            <div className={s.card}>
+              <div className={s.formGroup}>
+                <label className={s.label}>Slug URL</label>
+                <input
+                  className={s.input}
+                  value={currentPageData.slug}
+                  onChange={(e) =>
+                    setCurrentPageData({
+                      ...currentPageData,
+                      slug: e.target.value,
+                    })
+                  }
+                  disabled={!currentPageData.isNew}
+                  placeholder="contoh: kebijakan-privasi"
+                />
               </div>
-              <div className={styles.formGroup}>
-                <label>Judul Halaman</label>
-                <input className={styles.input} value={currentPageData.title} onChange={(e) => setCurrentPageData({...currentPageData, title: e.target.value})} />
+              <div className={s.formGroup}>
+                <label className={s.label}>Judul</label>
+                <input
+                  className={s.input}
+                  value={currentPageData.title}
+                  onChange={(e) =>
+                    setCurrentPageData({
+                      ...currentPageData,
+                      title: e.target.value,
+                    })
+                  }
+                />
               </div>
-              <div className={styles.formGroup}>
-                <label>Konten (Markdown)</label>
-                <textarea className={`${styles.textarea} ${styles.textareaCode}`} value={currentPageData.content} onChange={(e) => setCurrentPageData({...currentPageData, content: e.target.value})} />
+              <div className={s.formGroup}>
+                <label className={s.label}>Konten (Markdown)</label>
+                <textarea
+                  className={`${s.textarea} ${s.textareaCode}`}
+                  value={currentPageData.content}
+                  onChange={(e) =>
+                    setCurrentPageData({
+                      ...currentPageData,
+                      content: e.target.value,
+                    })
+                  }
+                />
               </div>
-
-              {message.text && (
-                <div className={`${styles.message} ${styles[message.type]}`}>{message.text}</div>
-              )}
-              
-              <button className={styles.btn} onClick={handleSavePage} disabled={loading}>
+              <MessageBanner />
+              <button
+                className={s.btn}
+                onClick={handleSavePage}
+                disabled={loading}
+              >
                 {loading ? "Menyimpan..." : "Simpan Halaman"}
               </button>
             </div>
           </>
         )}
 
-        {/* Tab: Pengaturan */}
-        {activeTab === 'settings' && (
+        {/* ---------- Settings ---------- */}
+        {activeTab === "settings" && (
           <>
-            <div className={styles.pageHeader}>
-              <h1>Pengaturan Website</h1>
+            <div className={s.pageHeader}>
+              <h1>Pengaturan</h1>
             </div>
-            <div className={styles.card}>
-              <div className={styles.formGroup}>
-                <label>Edit isi app-ads.txt</label>
-                <textarea className={`${styles.textarea} ${styles.textareaCode}`} value={appAds} onChange={(e) => setAppAds(e.target.value)} />
+            <div className={s.card}>
+              <div className={s.formGroup}>
+                <label className={s.label}>app-ads.txt</label>
+                <textarea
+                  className={`${s.textarea} ${s.textareaCode}`}
+                  value={appAds}
+                  onChange={(e) => setAppAds(e.target.value)}
+                />
               </div>
-              {message.text && (
-                <div className={`${styles.message} ${styles[message.type]}`}>{message.text}</div>
-              )}
-              <button className={styles.btn} onClick={handleSaveSettings} disabled={loading}>
-                {loading ? "Menyimpan..." : "Simpan Pengaturan"}
+              <MessageBanner />
+              <button
+                className={s.btn}
+                onClick={handleSaveSettings}
+                disabled={loading}
+              >
+                {loading ? "Menyimpan..." : "Simpan"}
               </button>
             </div>
           </>
         )}
-      </div>
+      </main>
     </div>
   );
 }
