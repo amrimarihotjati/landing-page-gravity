@@ -1,0 +1,91 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  text-align: center;
+  padding-top: 4rem;
+}
+
+.title {
+  font-size: 3.5rem;
+  background: -webkit-linear-gradient(45deg, #60a5fa, #f8fafc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 1.5rem;
+  line-height: 1.2;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  max-width: 600px;
+  margin: 0 auto 4rem auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+  width: 100%;
+}
+
+.appCard {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  text-align: left;
+}
+
+.appHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.appIcon {
+  font-size: 3rem;
+  background: rgba(255, 255, 255, 0.1);
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+}
+
+.appName {
+  font-size: 1.5rem;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.appDescription {
+  color: var(--text-muted);
+  flex-grow: 1;
+}
+
+.cardActions {
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.btnOutline {
+  background: transparent;
+  border: 1px solid var(--accent-color);
+  color: var(--text-main);
+}
+
+.btnOutline:hover {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+@media (max-width: 768px) {
+  .title {
+    font-size: 2.5rem;
+  }
+}
