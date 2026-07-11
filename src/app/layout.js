@@ -9,11 +9,11 @@ const inter = Inter({
 
 export const metadata = {
   title: {
-    default: "Amri Marihotjati — Android Developer",
-    template: "%s | Amri Marihotjati",
+    default: "SpellApp — Crafting Powerful Mobile Experiences",
+    template: "%s | SpellApp",
   },
   description:
-    "Jelajahi koleksi aplikasi Android berkualitas tinggi karya Amri Marihotjati.",
+    "SpellApp membangun aplikasi Android berkualitas tinggi untuk kebutuhan harian Anda.",
   icons: { icon: "/favicon.ico" },
 };
 

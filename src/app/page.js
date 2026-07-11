@@ -5,9 +5,9 @@ import s from "./page.module.css";
 export const revalidate = 0;
 
 export const metadata = {
-  title: "Amri Marihotjati — Android Developer",
+  title: "SpellApp — Crafting Powerful Mobile Experiences",
   description:
-    "Jelajahi koleksi aplikasi Android berkualitas tinggi karya Amri Marihotjati.",
+    "SpellApp membangun aplikasi Android berkualitas tinggi untuk kebutuhan harian Anda.",
 };
 
 /* ----------------------------------------------------------------
@@ -23,7 +23,7 @@ function isExternal(url) {
 }
 
 /* ----------------------------------------------------------------
-   Page Component (Server Component — no event handlers here!)
+   Page Component (Server Component — no event handlers!)
    ---------------------------------------------------------------- */
 export default async function Home() {
   const { data: appsData } = await supabase
@@ -39,7 +39,7 @@ export default async function Home() {
       <nav className={s.navbar}>
         <div className={`${s.container} ${s.navInner}`}>
           <Link href="/" className={s.logo}>
-            <span>Amri</span>Dev
+            <span className={s.logoIcon}>✦</span> SpellApp
           </Link>
           <ul className={s.navLinks}>
             <li>
@@ -48,9 +48,9 @@ export default async function Home() {
               </a>
             </li>
             <li>
-              <Link href="/admin" className={s.navLink}>
-                Admin
-              </Link>
+              <a href="#about" className={s.navLink}>
+                Tentang
+              </a>
             </li>
           </ul>
         </div>
@@ -59,26 +59,38 @@ export default async function Home() {
       <main>
         {/* ── Hero ── */}
         <section className={s.hero}>
+          {/* Decorative floating shapes */}
+          <div className={s.heroDecor1} />
+          <div className={s.heroDecor2} />
+
           <div className={`${s.container} ${s.heroInner}`}>
             <div className={s.heroText}>
+              <span className={s.heroBadge}>🚀 Inovasi Digital Terdepan</span>
               <h1 className={s.heroTitle}>
-                Solusi Digital{" "}
-                <span className={s.heroHighlight}>Terbaik</span> Untuk Anda
+                Kami Membangun Aplikasi yang{" "}
+                <span className={s.heroHighlight}>Mengubah</span> Cara Anda
+                Beraktivitas
               </h1>
               <p className={s.heroSubtitle}>
-                Kami membangun aplikasi yang memberikan solusi nyata untuk
-                kebutuhan harian Anda — modern, aman, dan mudah digunakan.
+                SpellApp menghadirkan solusi mobile yang modern, aman, dan
+                intuitif — dirancang untuk meningkatkan produktivitas dan
+                kenyamanan Anda setiap hari.
               </p>
-              <a href="#apps" className={s.heroBtn}>
-                Jelajahi Aplikasi ↓
-              </a>
+              <div className={s.heroCtas}>
+                <a href="#apps" className={s.heroBtn}>
+                  Jelajahi Produk
+                </a>
+                <a href="#about" className={s.heroBtnOutline}>
+                  Pelajari Lebih Lanjut
+                </a>
+              </div>
             </div>
 
             <div className={s.heroImageWrapper}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/hero-mockup.jpg"
-                alt="App Showcase"
+                alt="SpellApp Showcase"
                 className={s.heroImage}
               />
             </div>
@@ -95,12 +107,34 @@ export default async function Home() {
           </div>
         </section>
 
+        {/* ── Stats Bar ── */}
+        <section className={s.statsBar}>
+          <div className={`${s.container} ${s.statsInner}`}>
+            <div className={s.statItem}>
+              <span className={s.statNumber}>10K+</span>
+              <span className={s.statLabel}>Download</span>
+            </div>
+            <div className={s.statDivider} />
+            <div className={s.statItem}>
+              <span className={s.statNumber}>4.8★</span>
+              <span className={s.statLabel}>Rating</span>
+            </div>
+            <div className={s.statDivider} />
+            <div className={s.statItem}>
+              <span className={s.statNumber}>99.9%</span>
+              <span className={s.statLabel}>Uptime</span>
+            </div>
+          </div>
+        </section>
+
         {/* ── Apps Section ── */}
         <section id="apps" className={s.appsSection}>
           <div className={s.container}>
-            <h2 className={s.sectionTitle}>Ekosistem Aplikasi Kami</h2>
+            <span className={s.sectionBadge}>Produk Kami</span>
+            <h2 className={s.sectionTitle}>Ekosistem Aplikasi Premium</h2>
             <p className={s.sectionSubtitle}>
-              Berbagai pilihan aplikasi untuk menunjang aktivitas harian Anda
+              Setiap aplikasi dirancang dengan standar industri tertinggi untuk
+              memberikan pengalaman terbaik bagi pengguna
             </p>
 
             <div className={s.grid}>
@@ -122,7 +156,10 @@ export default async function Home() {
                           <span>{app.icon || "📱"}</span>
                         )}
                       </div>
-                      <h3 className={s.cardName}>{app.name}</h3>
+                      <div>
+                        <h3 className={s.cardName}>{app.name}</h3>
+                        <span className={s.cardTag}>Android App</span>
+                      </div>
                     </div>
 
                     <p className={s.cardDesc}>{app.description}</p>
@@ -148,7 +185,7 @@ export default async function Home() {
                           rel="noopener noreferrer"
                           className={s.btnPlayStore}
                         >
-                          Google Play
+                          ▶ Google Play
                         </a>
                       )}
 
@@ -173,15 +210,65 @@ export default async function Home() {
             </div>
           </div>
         </section>
+
+        {/* ── About Section ── */}
+        <section id="about" className={s.aboutSection}>
+          <div className={`${s.container} ${s.aboutInner}`}>
+            <div className={s.aboutText}>
+              <span className={s.sectionBadge}>Tentang Kami</span>
+              <h2 className={s.aboutTitle}>
+                Kami Percaya Teknologi Harus Mudah Diakses Semua Orang
+              </h2>
+              <p className={s.aboutDesc}>
+                SpellApp lahir dari semangat untuk menciptakan aplikasi mobile
+                yang tidak hanya fungsional, tetapi juga indah dan menyenangkan
+                untuk digunakan. Kami berkomitmen pada keamanan data pengguna,
+                performa optimal, dan desain yang intuitif.
+              </p>
+            </div>
+            <div className={s.aboutFeatures}>
+              <div className={s.featureItem}>
+                <div className={s.featureIcon}>🔒</div>
+                <h4 className={s.featureName}>Keamanan Tinggi</h4>
+                <p className={s.featureDesc}>
+                  Enkripsi end-to-end dan perlindungan data pengguna sesuai
+                  standar industri
+                </p>
+              </div>
+              <div className={s.featureItem}>
+                <div className={s.featureIcon}>⚡</div>
+                <h4 className={s.featureName}>Performa Optimal</h4>
+                <p className={s.featureDesc}>
+                  Arsitektur ringan yang berjalan mulus di berbagai perangkat
+                  Android
+                </p>
+              </div>
+              <div className={s.featureItem}>
+                <div className={s.featureIcon}>🎨</div>
+                <h4 className={s.featureName}>Desain Modern</h4>
+                <p className={s.featureDesc}>
+                  Antarmuka intuitif mengikuti Material Design guidelines terbaru
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
 
       {/* ── Footer ── */}
       <footer className={s.footer}>
         <div className={`${s.container} ${s.footerInner}`}>
-          <span className={s.footerBrand}>AmriDev</span>
-          <span className={s.footerCopy}>
-            © {new Date().getFullYear()} Amri Marihotjati. All rights reserved.
-          </span>
+          <div className={s.footerLeft}>
+            <span className={s.footerBrand}>✦ SpellApp</span>
+            <span className={s.footerCopy}>
+              © {new Date().getFullYear()} SpellApp. All rights reserved.
+            </span>
+          </div>
+          <div className={s.footerLinks}>
+            <Link href="/admin" className={s.footerLink}>
+              Admin
+            </Link>
+          </div>
         </div>
       </footer>
     </div>
