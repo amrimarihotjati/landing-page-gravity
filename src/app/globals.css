@@ -1,6 +1,8 @@
 :root {
   --primary-color: #118eea; /* DANA-like Blue */
   --primary-dark: #0a6bba;
+  --secondary-color: #0b192c;
+  --background: #ffffff;
   --bg-main: #ffffff;
   --bg-secondary: #f4f7fe;
   --text-main: #1e293b;
