@@ -46,7 +46,6 @@ export default async function Home() {
               src="/hero-mockup.jpg" 
               alt="Premium App Showcase" 
               className={styles.heroImage} 
-              onError={(e) => e.target.style.display = 'none'}
             />
           </div>
         </section>
