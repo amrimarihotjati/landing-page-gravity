@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "../../lib/supabase";
 import styles from "./admin.module.css";
 
@@ -8,10 +8,15 @@ export default function AdminPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   
+  const [activeTab, setActiveTab] = useState("list"); // 'list', 'editor', 'settings'
   const [apps, setApps] = useState([]);
   const [appAds, setAppAds] = useState("");
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
+  
+  // Editor State
+  const [currentApp, setCurrentApp] = useState(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -28,15 +33,13 @@ export default function AdminPage() {
   }, []);
 
   const fetchData = async () => {
-    // Fetch apps
-    const { data: appsData, error: appsError } = await supabase
+    const { data: appsData } = await supabase
       .from('apps')
       .select('*')
       .order('created_at', { ascending: true });
     
     if (appsData) setApps(appsData);
 
-    // Fetch app-ads
     const { data: settingsData } = await supabase
       .from('settings')
       .select('value')
@@ -59,103 +62,134 @@ export default function AdminPage() {
     await supabase.auth.signOut();
   };
 
-  const handleAddApp = () => {
-    setApps([
-      ...apps,
-      {
-        id: "app-baru",
-        name: "Aplikasi Baru",
-        description: "",
-        icon: "📱",
-        playStoreLink: "",
-        privacyPolicy: "# Privacy Policy",
-        isNew: true
-      },
-    ]);
-  };
-
-  const handleChangeApp = (index, field, value) => {
-    const newApps = [...apps];
-    newApps[index][field] = value;
-    setApps(newApps);
-  };
-
-  const handleRemoveApp = async (index, appId) => {
-    if (!confirm("Yakin ingin menghapus aplikasi ini?")) return;
-    
-    const newApps = [...apps];
-    const appToRemove = newApps[index];
-    newApps.splice(index, 1);
-    setApps(newApps);
-
-    if (!appToRemove.isNew) {
-      await supabase.from('apps').delete().eq('id', appId);
-    }
-  };
-
-  const handleSave = async () => {
-    setLoading(true);
-    setMessage({ text: "Menyimpan perubahan ke Database...", type: "info" });
-
+  // Upload Logic
+  const handleFileUpload = async (e, type) => {
     try {
-      // 1. Save Apps
-      for (const app of apps) {
-        const appData = {
-          id: app.id,
-          name: app.name,
-          description: app.description,
-          icon: app.icon,
-          playStoreLink: app.playStoreLink,
-          privacyPolicy: app.privacyPolicy,
-        };
+      setUploading(true);
+      const files = e.target.files;
+      if (!files || files.length === 0) return;
 
-        if (app.isNew) {
-          await supabase.from('apps').insert([appData]);
-          app.isNew = false;
-        } else {
-          await supabase.from('apps').update(appData).eq('id', app.id);
-        }
+      const uploadedUrls = [];
+      
+      for (const file of files) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('assets')
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+        
+        const { data } = supabase.storage.from('assets').getPublicUrl(filePath);
+        uploadedUrls.push(data.publicUrl);
       }
 
-      // 2. Save app-ads.txt
-      const { error: settingsError } = await supabase
-        .from('settings')
-        .upsert([{ key: 'app-ads', value: appAds }]);
-        
-      if (settingsError) throw settingsError;
-
-      setMessage({ text: "Data berhasil disimpan!", type: "success" });
-    } catch (err) {
-      setMessage({ text: err.message || "Terjadi kesalahan", type: "error" });
+      if (type === 'icon') {
+        setCurrentApp({ ...currentApp, icon: uploadedUrls[0] });
+      } else if (type === 'screenshots') {
+        const existing = currentApp.screenshots || [];
+        setCurrentApp({ ...currentApp, screenshots: [...existing, ...uploadedUrls] });
+      }
+      
+    } catch (error) {
+      alert('Error uploading image: ' + error.message);
+    } finally {
+      setUploading(false);
     }
+  };
+
+  const removeScreenshot = (indexToRemove) => {
+    const updatedSS = currentApp.screenshots.filter((_, idx) => idx !== indexToRemove);
+    setCurrentApp({ ...currentApp, screenshots: updatedSS });
+  };
+
+  // Editor Logic
+  const openEditor = (app) => {
+    if (app) {
+      setCurrentApp(app);
+    } else {
+      setCurrentApp({
+        id: "",
+        name: "",
+        description: "",
+        icon: "",
+        playStoreLink: "",
+        privacyPolicy: "# Privacy Policy",
+        screenshots: [],
+        isNew: true
+      });
+    }
+    setActiveTab("editor");
+    setMessage({ text: "", type: "" });
+  };
+
+  const handleSaveApp = async () => {
+    if (!currentApp.id || !currentApp.name) {
+      setMessage({ text: "ID dan Nama Aplikasi wajib diisi", type: "error" });
+      return;
+    }
+    setLoading(true);
+    try {
+      const appData = {
+        id: currentApp.id,
+        name: currentApp.name,
+        description: currentApp.description,
+        icon: currentApp.icon,
+        playStoreLink: currentApp.playStoreLink,
+        privacyPolicy: currentApp.privacyPolicy,
+        screenshots: currentApp.screenshots || []
+      };
+
+      if (currentApp.isNew) {
+        const { error } = await supabase.from('apps').insert([appData]);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('apps').update(appData).eq('id', currentApp.id);
+        if (error) throw error;
+      }
+      
+      setMessage({ text: "Aplikasi berhasil disimpan!", type: "success" });
+      await fetchData();
+      setTimeout(() => setActiveTab("list"), 1500);
+    } catch (error) {
+      setMessage({ text: error.message, type: "error" });
+    }
+    setLoading(false);
+  };
+
+  const handleDeleteApp = async (id) => {
+    if (!confirm("Yakin ingin menghapus aplikasi ini?")) return;
+    setLoading(true);
+    await supabase.from('apps').delete().eq('id', id);
+    await fetchData();
+    setLoading(false);
+  };
+
+  const handleSaveSettings = async () => {
+    setLoading(true);
+    const { error } = await supabase.from('settings').upsert([{ key: 'app-ads', value: appAds }]);
+    if (error) setMessage({ text: error.message, type: "error" });
+    else setMessage({ text: "Pengaturan berhasil disimpan!", type: "success" });
     setLoading(false);
   };
 
   if (!session) {
     return (
-      <div className={styles.adminContainer}>
-        <div className={styles.card} style={{ maxWidth: '400px', margin: '0 auto' }}>
-          <h2>Login Admin</h2>
+      <div className={styles.loginContainer}>
+        <div className={styles.loginCard}>
+          <h2>Login CMS</h2>
           <form onSubmit={handleLogin}>
-            <input 
-              type="email" 
-              placeholder="Email" 
-              className={styles.input}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required 
-            />
-            <input 
-              type="password" 
-              placeholder="Password" 
-              className={styles.input}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required 
-            />
-            {message.text && <p className={styles.helpText} style={{color: 'red'}}>{message.text}</p>}
-            <button type="submit" className={styles.btn} disabled={loading}>
-              {loading ? 'Loading...' : 'Login'}
+            <div className={styles.formGroup}>
+              <input type="email" placeholder="Email" className={styles.input} value={email} onChange={(e) => setEmail(e.target.value)} required />
+            </div>
+            <div className={styles.formGroup}>
+              <input type="password" placeholder="Password" className={styles.input} value={password} onChange={(e) => setPassword(e.target.value)} required />
+            </div>
+            {message.text && <p style={{color: 'red', marginBottom: '1rem', fontSize: '0.9rem'}}>{message.text}</p>}
+            <button type="submit" className={`${styles.btn} ${styles.btnFull}`} disabled={loading} style={{width: '100%'}}>
+              {loading ? 'Loading...' : 'Masuk'}
             </button>
           </form>
         </div>
@@ -164,70 +198,159 @@ export default function AdminPage() {
   }
 
   return (
-    <div className={styles.adminContainer}>
-      <div className={styles.header}>
-        <h1>Dashboard Admin</h1>
-        <p>Kelola aplikasi dan app-ads.txt Anda dengan Supabase.</p>
-        <button className={styles.btnSmall} onClick={handleLogout} style={{marginTop: '1rem'}}>Logout</button>
-      </div>
-
-      <div className={styles.card}>
-        <div className={styles.flexBetween}>
-          <h2>Daftar Aplikasi</h2>
-          <button className={styles.btnSmall} onClick={handleAddApp}>+ Tambah Aplikasi</button>
+    <div className={styles.cmsContainer}>
+      {/* Sidebar */}
+      <div className={styles.sidebar}>
+        <div className={styles.sidebarHeader}>
+          <h2>Admin Dashboard</h2>
         </div>
+        <div className={styles.navMenu}>
+          <div className={`${styles.navItem} ${activeTab === 'list' || activeTab === 'editor' ? styles.active : ''}`} onClick={() => setActiveTab('list')}>
+            📦 Daftar Aplikasi
+          </div>
+          <div className={`${styles.navItem} ${activeTab === 'settings' ? styles.active : ''}`} onClick={() => setActiveTab('settings')}>
+            ⚙️ Pengaturan Web
+          </div>
+        </div>
+        <div className={styles.sidebarFooter}>
+          <button className={styles.btnSecondary} onClick={handleLogout} style={{width: '100%'}}>Logout</button>
+        </div>
+      </div>
 
-        {apps.map((app, index) => (
-          <div key={index} className={styles.appEditCard}>
-            <div className={styles.flexBetween}>
-              <h3>Aplikasi {index + 1}</h3>
-              <button className={styles.btnDanger} onClick={() => handleRemoveApp(index, app.id)}>Hapus</button>
+      {/* Main Content */}
+      <div className={styles.mainContent}>
+        {/* Tab: Daftar Aplikasi */}
+        {activeTab === 'list' && (
+          <>
+            <div className={styles.pageHeader}>
+              <h1>Daftar Aplikasi</h1>
+              <button className={styles.btn} onClick={() => openEditor(null)}>+ Tambah Baru</button>
             </div>
-            
-            <label>ID (URL Slug)</label>
-            <input className={styles.input} value={app.id} onChange={(e) => handleChangeApp(index, "id", e.target.value)} disabled={!app.isNew} />
-
-            <label>Nama Aplikasi</label>
-            <input className={styles.input} value={app.name} onChange={(e) => handleChangeApp(index, "name", e.target.value)} />
-
-            <label>Deskripsi Singkat</label>
-            <textarea className={styles.textarea} value={app.description} onChange={(e) => handleChangeApp(index, "description", e.target.value)} />
-
-            <label>Ikon (Emoji atau URL Gambar)</label>
-            <input className={styles.input} value={app.icon} onChange={(e) => handleChangeApp(index, "icon", e.target.value)} />
-
-            <label>Play Store Link</label>
-            <input className={styles.input} value={app.playStoreLink} onChange={(e) => handleChangeApp(index, "playStoreLink", e.target.value)} />
-
-            <label>Privacy Policy (Markdown)</label>
-            <textarea className={styles.textareaLarge} value={app.privacyPolicy} onChange={(e) => handleChangeApp(index, "privacyPolicy", e.target.value)} />
-          </div>
-        ))}
-      </div>
-
-      <div className={styles.card}>
-        <h2>app-ads.txt</h2>
-        <p className={styles.helpText}>Edit isi file app-ads.txt untuk AdMob atau jaringan iklan lainnya.</p>
-        <textarea
-          className={styles.textareaLarge}
-          value={appAds}
-          onChange={(e) => setAppAds(e.target.value)}
-        />
-      </div>
-
-      <div className={styles.actions}>
-        {message.text && (
-          <div className={`${styles.message} ${styles[message.type]}`}>
-            {message.text}
-          </div>
+            <div className={styles.card}>
+              <div className={styles.tableContainer}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Nama Aplikasi</th>
+                      <th>Slug (ID)</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {apps.length === 0 ? (
+                      <tr><td colSpan="3" style={{textAlign: 'center', padding: '2rem'}}>Belum ada aplikasi.</td></tr>
+                    ) : apps.map(app => (
+                      <tr key={app.id}>
+                        <td><strong>{app.name}</strong></td>
+                        <td>{app.id}</td>
+                        <td>
+                          <button className={`${styles.btnSecondary} ${styles.btnSmall}`} onClick={() => openEditor(app)} style={{marginRight: '8px'}}>Edit</button>
+                          <button className={`${styles.btnDanger} ${styles.btnSmall}`} onClick={() => handleDeleteApp(app.id)}>Hapus</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
         )}
-        <button 
-          className={`${styles.btn} ${loading ? styles.loading : ''}`} 
-          onClick={handleSave} 
-          disabled={loading}
-        >
-          {loading ? "Menyimpan..." : "Simpan ke Database"}
-        </button>
+
+        {/* Tab: Editor Aplikasi */}
+        {activeTab === 'editor' && currentApp && (
+          <>
+            <div className={styles.pageHeader}>
+              <h1>{currentApp.isNew ? 'Tambah Aplikasi Baru' : 'Edit Aplikasi'}</h1>
+              <button className={styles.btnSecondary} onClick={() => setActiveTab('list')}>KEMBALI</button>
+            </div>
+            <div className={styles.card}>
+              <div className={styles.formGroup}>
+                <label>ID / Slug URL (Harus Unik, tanpa spasi)</label>
+                <input className={styles.input} value={currentApp.id} onChange={(e) => setCurrentApp({...currentApp, id: e.target.value})} disabled={!currentApp.isNew} placeholder="misal: harga-emas" />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Nama Aplikasi</label>
+                <input className={styles.input} value={currentApp.name} onChange={(e) => setCurrentApp({...currentApp, name: e.target.value})} />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Deskripsi Singkat</label>
+                <textarea className={styles.textarea} value={currentApp.description} onChange={(e) => setCurrentApp({...currentApp, description: e.target.value})} />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Play Store Link</label>
+                <input className={styles.input} value={currentApp.playStoreLink} onChange={(e) => setCurrentApp({...currentApp, playStoreLink: e.target.value})} />
+              </div>
+              
+              <div className={styles.formGroup}>
+                <label>Ikon Aplikasi (Bisa ketik Emoji, link URL, atau Upload)</label>
+                <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
+                  <input className={styles.input} value={currentApp.icon} onChange={(e) => setCurrentApp({...currentApp, icon: e.target.value})} style={{flex: 1}} />
+                  <label className={styles.btnSecondary} style={{cursor: 'pointer', margin: 0}}>
+                    {uploading ? 'Uploading...' : 'Upload Icon'}
+                    <input type="file" accept="image/*" hidden onChange={(e) => handleFileUpload(e, 'icon')} disabled={uploading} />
+                  </label>
+                </div>
+                {currentApp.icon && currentApp.icon.startsWith('http') && (
+                  <img src={currentApp.icon} alt="Icon Preview" className={styles.imagePreview} style={{marginTop: '10px', width: '60px', height: '60px', borderRadius: '12px'}} />
+                )}
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Screenshots (Galeri)</label>
+                <div className={styles.uploadBox}>
+                  <label style={{cursor: 'pointer', display: 'block'}}>
+                    {uploading ? 'Sedang Mengunggah...' : 'Klik di sini untuk upload banyak gambar (Screenshots)'}
+                    <input type="file" accept="image/*" multiple hidden onChange={(e) => handleFileUpload(e, 'screenshots')} disabled={uploading} />
+                  </label>
+                </div>
+                {currentApp.screenshots && currentApp.screenshots.length > 0 && (
+                  <div className={styles.gallery}>
+                    {currentApp.screenshots.map((url, idx) => (
+                      <div key={idx} className={styles.imagePreviewWrapper}>
+                        <img src={url} alt={`Screenshot ${idx}`} className={styles.imagePreview} />
+                        <button className={styles.deleteImageBtn} onClick={() => removeScreenshot(idx)}>✕</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Privacy Policy (Markdown)</label>
+                <textarea className={`${styles.textarea} ${styles.textareaCode}`} value={currentApp.privacyPolicy} onChange={(e) => setCurrentApp({...currentApp, privacyPolicy: e.target.value})} />
+              </div>
+
+              {message.text && (
+                <div className={`${styles.message} ${styles[message.type]}`}>{message.text}</div>
+              )}
+              
+              <button className={styles.btn} onClick={handleSaveApp} disabled={loading || uploading}>
+                {loading ? "Menyimpan..." : "Simpan Aplikasi"}
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* Tab: Pengaturan */}
+        {activeTab === 'settings' && (
+          <>
+            <div className={styles.pageHeader}>
+              <h1>Pengaturan Website</h1>
+            </div>
+            <div className={styles.card}>
+              <div className={styles.formGroup}>
+                <label>Edit isi app-ads.txt</label>
+                <textarea className={`${styles.textarea} ${styles.textareaCode}`} value={appAds} onChange={(e) => setAppAds(e.target.value)} />
+              </div>
+              {message.text && (
+                <div className={`${styles.message} ${styles[message.type]}`}>{message.text}</div>
+              )}
+              <button className={styles.btn} onClick={handleSaveSettings} disabled={loading}>
+                {loading ? "Menyimpan..." : "Simpan Pengaturan"}
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

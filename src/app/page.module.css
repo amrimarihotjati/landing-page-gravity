@@ -1,172 +1,226 @@
-/* Hero Section */
+.container {
+  min-height: 100vh;
+  padding: 0 1rem;
+}
+
 .hero {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6rem 0;
-  gap: 4rem;
+  padding: 6rem 2rem 8rem 2rem;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  color: white;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
 }
 
 .heroContent {
-  flex: 1;
-  max-width: 600px;
-}
-
-.title {
-  font-size: 3.5rem;
-  font-weight: 800;
-  color: var(--text-main);
-  line-height: 1.2;
-  margin-bottom: 1.5rem;
-}
-
-.title span {
-  color: var(--primary-color);
-}
-
-.subtitle {
-  font-size: 1.25rem;
-  color: var(--text-muted);
-  margin-bottom: 2.5rem;
-}
-
-.heroImageWrapper {
-  flex: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
 }
 
-.heroImage {
+.hero h1 {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+  line-height: 1.2;
+  text-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.hero p {
+  font-size: 1.25rem;
+  color: var(--text-muted);
+  max-width: 600px;
+  margin: 0 auto 3rem auto;
+}
+
+.heroMockup {
   width: 100%;
-  max-width: 450px;
-  border-radius: 24px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  transform: perspective(1000px) rotateY(-5deg);
-  transition: transform 0.5s ease;
+  max-width: 400px;
+  margin-top: -2rem;
+  filter: drop-shadow(0 20px 30px rgba(0,0,0,0.2));
+  animation: float 6s ease-in-out infinite;
 }
 
-.heroImage:hover {
-  transform: perspective(1000px) rotateY(0deg) translateY(-10px);
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+  100% { transform: translateY(0px); }
 }
 
-/* Waves Divider */
-.waveContainer {
-  position: relative;
+.waves {
+  position: absolute;
+  bottom: 0;
+  left: 0;
   width: 100%;
   overflow: hidden;
   line-height: 0;
-  transform: translateY(2px); /* overlap prevention */
+  transform: rotate(180deg);
 }
 
-.waveContainer svg {
+.waves svg {
   position: relative;
   display: block;
   width: calc(100% + 1.3px);
-  height: 120px;
+  height: 100px;
 }
 
-.waveContainer .shapeFill {
-  fill: var(--bg-secondary);
+.waves .shapeFill {
+  fill: var(--background);
 }
 
-/* App Section */
 .appsSection {
-  background-color: var(--bg-secondary);
-  padding: 6rem 0 8rem 0;
+  padding: 4rem 2rem 6rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.sectionHeader {
+.appsSection h2 {
   text-align: center;
-  margin-bottom: 4rem;
-}
-
-.sectionHeader h2 {
   font-size: 2.5rem;
-  color: var(--text-main);
+  color: var(--primary-color);
+  margin-bottom: 3rem;
+  font-weight: 800;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 2rem;
 }
 
 .appCard {
   background: white;
-  border-radius: 24px;
-  padding: 2.5rem;
-  box-shadow: var(--card-shadow);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 20px;
+  padding: 2rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05);
+  border: 1px solid rgba(0,0,0,0.05);
   display: flex;
   flex-direction: column;
-  height: 100%;
-  border: 1px solid var(--border-light);
 }
 
 .appCard:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px -10px rgba(17, 142, 234, 0.2);
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);
+  border-color: rgba(59, 130, 246, 0.2);
 }
 
 .appHeader {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.25rem;
   margin-bottom: 1.5rem;
 }
 
 .appIconWrapper {
-  width: 72px;
-  height: 72px;
-  border-radius: 18px;
-  overflow: hidden;
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-secondary);
   font-size: 2.5rem;
-  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  overflow: hidden;
 }
 
-.appIconImage {
+.iconImage {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.appName {
+.appCard h3 {
   font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-main);
+  color: #1f2937;
   margin: 0;
+  font-weight: 700;
 }
 
 .appDescription {
-  color: var(--text-muted);
-  font-size: 1rem;
+  color: #6b7280;
   line-height: 1.6;
-  flex-grow: 1;
+  margin-bottom: 1.5rem;
+  flex: 1;
 }
 
-.cardActions {
-  margin-top: 2rem;
+/* Screenshots Gallery */
+.screenshotsGallery {
   display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  margin-bottom: 1.5rem;
+  scrollbar-width: thin;
+}
+
+.screenshotsGallery::-webkit-scrollbar {
+  height: 6px;
+}
+.screenshotsGallery::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+.screenshotsGallery::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 10px;
+}
+
+.screenshotImg {
+  height: 160px;
+  width: auto;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  object-fit: contain;
+  background: #f9fafb;
+}
+
+.cardFooter {
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
 }
 
-@media (max-width: 900px) {
-  .hero {
-    flex-direction: column;
-    text-align: center;
-    padding: 4rem 0;
-  }
-  
-  .heroImage {
-    transform: none;
-  }
-  
-  .heroImage:hover {
-    transform: translateY(-10px);
-  }
+.playStoreBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #10b981;
+  color: white;
+  padding: 1rem;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+}
+
+.playStoreBtn:hover {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3);
+}
+
+.privacyLink {
+  text-align: center;
+  color: #6b7280;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.2s ease;
+}
+
+.privacyLink:hover {
+  color: var(--accent-color);
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .hero h1 { font-size: 2.5rem; }
+  .appsSection h2 { font-size: 2rem; }
+  .heroContent { flex-direction: column; }
 }

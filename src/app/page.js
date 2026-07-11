@@ -59,25 +59,36 @@ export default async function Home() {
                 <div key={app.id} className={styles.appCard}>
                   <div className={styles.appHeader}>
                     <div className={styles.appIconWrapper}>
-                      {app.icon.startsWith("http") ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={app.icon} alt={app.name} className={styles.appIconImage} />
+                      {app.icon && app.icon.startsWith('http') ? (
+                        <img src={app.icon} alt={app.name} className={styles.iconImage} />
                       ) : (
-                        app.icon
+                        <span>{app.icon || '📱'}</span>
                       )}
                     </div>
-                    <h3 className={styles.appName}>{app.name}</h3>
+                    <h3>{app.name}</h3>
                   </div>
+                  
                   <p className={styles.appDescription}>{app.description}</p>
-                  <div className={styles.cardActions}>
-                    <a
-                      href={app.playStoreLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn"
-                    >
+                  
+                  {app.screenshots && app.screenshots.length > 0 && (
+                    <div className={styles.screenshotsGallery}>
+                      {app.screenshots.map((ss, idx) => (
+                        <img key={idx} src={ss} alt={`Screenshot ${idx}`} className={styles.screenshotImg} />
+                      ))}
+                    </div>
+                  )}
+
+                  <div className={styles.cardFooter}>
+                    {app.playStoreLink && (
+                      <a 
+                        href={app.playStoreLink} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className={styles.playStoreBtn}
+                      >
                       Google Play
                     </a>
+                    )}
                     <Link href={`/privacy/${app.id}`} className="btn btn-outline">
                       Privacy Policy
                     </Link>
