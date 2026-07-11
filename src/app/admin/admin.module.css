@@ -1,0 +1,176 @@
+.adminContainer {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.header {
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+}
+
+.header p {
+  color: var(--text-muted);
+}
+
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-light);
+  margin-bottom: 2rem;
+}
+
+.card h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-main);
+}
+
+.helpText {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.input, .textarea, .textareaLarge {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-family: inherit;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.input:focus, .textarea:focus, .textareaLarge:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(17, 142, 234, 0.1);
+}
+
+.textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.textareaLarge {
+  min-height: 250px;
+  resize: vertical;
+  font-family: monospace;
+}
+
+.flexBetween {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.appEditCard {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border-light);
+}
+
+.appEditCard label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-main);
+  font-size: 0.9rem;
+}
+
+.btn {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.2s ease;
+}
+
+.btn:hover {
+  background: var(--primary-dark);
+}
+
+.btnSmall {
+  background: var(--bg-main);
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btnSmall:hover {
+  background: var(--primary-color);
+  color: white;
+}
+
+.btnDanger {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btnDanger:hover {
+  background: #dc2626;
+}
+
+.actions {
+  margin-top: 3rem;
+  position: sticky;
+  bottom: 2rem;
+}
+
+.message {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.message.error {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #f87171;
+}
+
+.message.success {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #4ade80;
+}
+
+.message.info {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #60a5fa;
+}
+
+.loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+}

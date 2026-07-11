@@ -8,7 +8,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--accent-color);
+  color: var(--primary-color);
   font-weight: 600;
   margin-bottom: 2rem;
   transition: opacity 0.2s ease;
@@ -18,31 +18,52 @@
   opacity: 0.8;
 }
 
-.content {
-  margin-top: 2rem;
+.card {
+  background: white;
+  border-radius: 24px;
+  padding: 3rem;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-light);
 }
 
-/* Styling markdown elements within the privacy policy */
+.content {
+  margin-top: 1rem;
+}
+
 .content h1 {
-  font-size: 2.5rem;
-  margin-bottom: 1.5rem;
+  font-size: 2.25rem;
+  margin-bottom: 2rem;
   color: var(--text-main);
-  background: -webkit-linear-gradient(45deg, #60a5fa, #f8fafc);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 
 .content h2 {
-  font-size: 1.75rem;
-  margin-top: 2rem;
+  font-size: 1.5rem;
+  margin-top: 2.5rem;
   margin-bottom: 1rem;
+  color: var(--primary-color);
+}
+
+.content h3 {
+  font-size: 1.25rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
   color: var(--text-main);
-  border-bottom: 1px solid var(--glass-border);
-  padding-bottom: 0.5rem;
 }
 
 .content p {
   color: var(--text-muted);
   line-height: 1.8;
   margin-bottom: 1.2rem;
+}
+
+.content ul, .content ol {
+  color: var(--text-muted);
+  margin-bottom: 1.2rem;
+  padding-left: 1.5rem;
+  line-height: 1.8;
+}
+
+.content a {
+  color: var(--primary-color);
+  text-decoration: underline;
 }

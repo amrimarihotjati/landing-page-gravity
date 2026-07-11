@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { appsData } from "../../../data/apps";
+import appsData from "../../../data/apps.json";
 import styles from "./privacy.module.css";
 
 // Fungsi untuk Cloudflare Pages (Static Export) agar menghasilkan semua route saat build time
@@ -47,7 +47,7 @@ export default function PrivacyPolicyPage({ params }) {
         ← Kembali ke Beranda
       </Link>
       
-      <div className="glass-card">
+      <div className={styles.card}>
         <div className={styles.content}>
           {renderMarkdown(app.privacyPolicy)}
         </div>
