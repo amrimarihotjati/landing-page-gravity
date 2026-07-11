@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 import styles from "./admin.module.css";
 
@@ -8,8 +8,9 @@ export default function AdminPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   
-  const [activeTab, setActiveTab] = useState("list"); // 'list', 'editor', 'settings'
+  const [activeTab, setActiveTab] = useState("list"); // 'list', 'editor', 'settings', 'pages', 'page_editor'
   const [apps, setApps] = useState([]);
+  const [pages, setPages] = useState([]);
   const [appAds, setAppAds] = useState("");
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -17,6 +18,7 @@ export default function AdminPage() {
   
   // Editor State
   const [currentApp, setCurrentApp] = useState(null);
+  const [currentPageData, setCurrentPageData] = useState(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -37,15 +39,19 @@ export default function AdminPage() {
       .from('apps')
       .select('*')
       .order('created_at', { ascending: true });
-    
     if (appsData) setApps(appsData);
+
+    const { data: pagesData } = await supabase
+      .from('pages')
+      .select('*')
+      .order('created_at', { ascending: true });
+    if (pagesData) setPages(pagesData);
 
     const { data: settingsData } = await supabase
       .from('settings')
       .select('value')
       .eq('key', 'app-ads')
       .single();
-    
     if (settingsData) setAppAds(settingsData.value);
   };
 
@@ -62,7 +68,6 @@ export default function AdminPage() {
     await supabase.auth.signOut();
   };
 
-  // Upload Logic
   const handleFileUpload = async (e, type) => {
     try {
       setUploading(true);
@@ -105,8 +110,8 @@ export default function AdminPage() {
     setCurrentApp({ ...currentApp, screenshots: updatedSS });
   };
 
-  // Editor Logic
-  const openEditor = (app) => {
+  // --- App Editor Logic ---
+  const openAppEditor = (app) => {
     if (app) {
       setCurrentApp(app);
     } else {
@@ -117,7 +122,6 @@ export default function AdminPage() {
         icon: "",
         playstorelink: "",
         customprivacylink: "",
-        privacypolicy: "# Privacy Policy",
         screenshots: [],
         isNew: true
       });
@@ -140,7 +144,6 @@ export default function AdminPage() {
         icon: currentApp.icon,
         playstorelink: currentApp.playstorelink,
         customprivacylink: currentApp.customprivacylink,
-        privacypolicy: currentApp.privacypolicy,
         screenshots: currentApp.screenshots || []
       };
 
@@ -165,6 +168,60 @@ export default function AdminPage() {
     if (!confirm("Yakin ingin menghapus aplikasi ini?")) return;
     setLoading(true);
     await supabase.from('apps').delete().eq('id', id);
+    await fetchData();
+    setLoading(false);
+  };
+
+  // --- Page Editor Logic ---
+  const openPageEditor = (page) => {
+    if (page) {
+      setCurrentPageData(page);
+    } else {
+      setCurrentPageData({
+        slug: "",
+        title: "",
+        content: "# Tulis isi artikel/halaman Anda di sini",
+        isNew: true
+      });
+    }
+    setActiveTab("page_editor");
+    setMessage({ text: "", type: "" });
+  };
+
+  const handleSavePage = async () => {
+    if (!currentPageData.slug || !currentPageData.title) {
+      setMessage({ text: "Slug dan Judul wajib diisi", type: "error" });
+      return;
+    }
+    setLoading(true);
+    try {
+      const payload = {
+        slug: currentPageData.slug,
+        title: currentPageData.title,
+        content: currentPageData.content
+      };
+
+      if (currentPageData.isNew) {
+        const { error } = await supabase.from('pages').insert([payload]);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('pages').update(payload).eq('slug', currentPageData.slug);
+        if (error) throw error;
+      }
+      
+      setMessage({ text: "Halaman berhasil disimpan!", type: "success" });
+      await fetchData();
+      setTimeout(() => setActiveTab("pages"), 1500);
+    } catch (error) {
+      setMessage({ text: error.message, type: "error" });
+    }
+    setLoading(false);
+  };
+
+  const handleDeletePage = async (slug) => {
+    if (!confirm("Yakin ingin menghapus halaman ini?")) return;
+    setLoading(true);
+    await supabase.from('pages').delete().eq('slug', slug);
     await fetchData();
     setLoading(false);
   };
@@ -201,7 +258,6 @@ export default function AdminPage() {
 
   return (
     <div className={styles.cmsContainer}>
-      {/* Sidebar */}
       <div className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
           <h2>Admin Dashboard</h2>
@@ -209,6 +265,9 @@ export default function AdminPage() {
         <div className={styles.navMenu}>
           <div className={`${styles.navItem} ${activeTab === 'list' || activeTab === 'editor' ? styles.active : ''}`} onClick={() => setActiveTab('list')}>
             📦 Daftar Aplikasi
+          </div>
+          <div className={`${styles.navItem} ${activeTab === 'pages' || activeTab === 'page_editor' ? styles.active : ''}`} onClick={() => setActiveTab('pages')}>
+            📄 Halaman (Artikel)
           </div>
           <div className={`${styles.navItem} ${activeTab === 'settings' ? styles.active : ''}`} onClick={() => setActiveTab('settings')}>
             ⚙️ Pengaturan Web
@@ -219,14 +278,13 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className={styles.mainContent}>
         {/* Tab: Daftar Aplikasi */}
         {activeTab === 'list' && (
           <>
             <div className={styles.pageHeader}>
               <h1>Daftar Aplikasi</h1>
-              <button className={styles.btn} onClick={() => openEditor(null)}>+ Tambah Baru</button>
+              <button className={styles.btn} onClick={() => openAppEditor(null)}>+ Tambah Aplikasi</button>
             </div>
             <div className={styles.card}>
               <div className={styles.tableContainer}>
@@ -246,7 +304,7 @@ export default function AdminPage() {
                         <td><strong>{app.name}</strong></td>
                         <td>{app.id}</td>
                         <td>
-                          <button className={`${styles.btnSecondary} ${styles.btnSmall}`} onClick={() => openEditor(app)} style={{marginRight: '8px'}}>Edit</button>
+                          <button className={`${styles.btnSecondary} ${styles.btnSmall}`} onClick={() => openAppEditor(app)} style={{marginRight: '8px'}}>Edit</button>
                           <button className={`${styles.btnDanger} ${styles.btnSmall}`} onClick={() => handleDeleteApp(app.id)}>Hapus</button>
                         </td>
                       </tr>
@@ -318,14 +376,11 @@ export default function AdminPage() {
               </div>
 
               <div className={styles.formGroup}>
-                <label>Custom Privacy Policy URL (Opsional)</label>
-                <div style={{fontSize: '0.85rem', color: '#6b7280', marginBottom: '8px'}}>Isi jika Anda ingin menggunakan URL dari Blogger/Google Docs. Kosongkan jika ingin mengetik artikel sendiri di bawah.</div>
-                <input className={styles.input} placeholder="https://..." value={currentApp.customprivacylink || ''} onChange={(e) => setCurrentApp({...currentApp, customprivacylink: e.target.value})} />
-              </div>
-
-              <div className={styles.formGroup}>
-                <label>Privacy Policy (Markdown - Artikel Bawaan)</label>
-                <textarea className={`${styles.textarea} ${styles.textareaCode}`} value={currentApp.privacypolicy} onChange={(e) => setCurrentApp({...currentApp, privacypolicy: e.target.value})} />
+                <label>Tautan Privacy Policy</label>
+                <div style={{fontSize: '0.85rem', color: '#6b7280', marginBottom: '8px'}}>
+                  Ketik URL eksternal (https://...) ATAU ketik path lokal dari Halaman CMS Anda (misal: <strong>/page/kebijakan-privasi</strong>).
+                </div>
+                <input className={styles.input} placeholder="/page/slug-halaman atau https://..." value={currentApp.customprivacylink || ''} onChange={(e) => setCurrentApp({...currentApp, customprivacylink: e.target.value})} />
               </div>
 
               {message.text && (
@@ -334,6 +389,75 @@ export default function AdminPage() {
               
               <button className={styles.btn} onClick={handleSaveApp} disabled={loading || uploading}>
                 {loading ? "Menyimpan..." : "Simpan Aplikasi"}
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* Tab: Daftar Halaman */}
+        {activeTab === 'pages' && (
+          <>
+            <div className={styles.pageHeader}>
+              <h1>Daftar Halaman (Privacy & Artikel)</h1>
+              <button className={styles.btn} onClick={() => openPageEditor(null)}>+ Buat Halaman Baru</button>
+            </div>
+            <div className={styles.card}>
+              <div className={styles.tableContainer}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Judul Halaman</th>
+                      <th>URL Path</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pages.length === 0 ? (
+                      <tr><td colSpan="3" style={{textAlign: 'center', padding: '2rem'}}>Belum ada halaman.</td></tr>
+                    ) : pages.map(page => (
+                      <tr key={page.slug}>
+                        <td><strong>{page.title}</strong></td>
+                        <td>/page/{page.slug}</td>
+                        <td>
+                          <button className={`${styles.btnSecondary} ${styles.btnSmall}`} onClick={() => openPageEditor(page)} style={{marginRight: '8px'}}>Edit</button>
+                          <button className={`${styles.btnDanger} ${styles.btnSmall}`} onClick={() => handleDeletePage(page.slug)}>Hapus</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Tab: Editor Halaman */}
+        {activeTab === 'page_editor' && currentPageData && (
+          <>
+            <div className={styles.pageHeader}>
+              <h1>{currentPageData.isNew ? 'Buat Halaman Baru' : 'Edit Halaman'}</h1>
+              <button className={styles.btnSecondary} onClick={() => setActiveTab('pages')}>KEMBALI</button>
+            </div>
+            <div className={styles.card}>
+              <div className={styles.formGroup}>
+                <label>Slug URL (Harus Unik, tanpa spasi)</label>
+                <input className={styles.input} value={currentPageData.slug} onChange={(e) => setCurrentPageData({...currentPageData, slug: e.target.value})} disabled={!currentPageData.isNew} placeholder="misal: kebijakan-privasi-1" />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Judul Halaman</label>
+                <input className={styles.input} value={currentPageData.title} onChange={(e) => setCurrentPageData({...currentPageData, title: e.target.value})} />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Konten (Markdown)</label>
+                <textarea className={`${styles.textarea} ${styles.textareaCode}`} value={currentPageData.content} onChange={(e) => setCurrentPageData({...currentPageData, content: e.target.value})} />
+              </div>
+
+              {message.text && (
+                <div className={`${styles.message} ${styles[message.type]}`}>{message.text}</div>
+              )}
+              
+              <button className={styles.btn} onClick={handleSavePage} disabled={loading}>
+                {loading ? "Menyimpan..." : "Simpan Halaman"}
               </button>
             </div>
           </>

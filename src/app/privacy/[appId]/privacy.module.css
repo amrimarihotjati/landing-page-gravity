@@ -1,36 +1,35 @@
 .privacyContainer {
   min-height: 100vh;
-  background-color: var(--background);
+  background-color: #f8fafc;
   padding: 4rem 2rem;
-  color: var(--text-main);
+  color: #1e293b;
 }
 
 .backLink {
   display: inline-flex;
   align-items: center;
   margin-bottom: 2rem;
-  color: #3b82f6;
+  color: #118eea;
   font-weight: 500;
   transition: all 0.2s ease;
   padding: 0.5rem 1rem;
   border-radius: 8px;
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(17, 142, 234, 0.1);
 }
 
 .backLink:hover {
-  background: rgba(59, 130, 246, 0.2);
+  background: rgba(17, 142, 234, 0.2);
   transform: translateX(-5px);
 }
 
 .card {
   max-width: 800px;
   margin: 0 auto;
-  background: var(--card-bg);
+  background: #ffffff;
   border-radius: 20px;
   padding: 4rem;
-  box-shadow: var(--card-shadow);
-  border: var(--card-border);
-  backdrop-filter: var(--glass-blur);
+  box-shadow: 0 10px 40px -10px rgba(17, 142, 234, 0.15);
+  border: 1px solid #e2e8f0;
 }
 
 .content {
@@ -41,8 +40,8 @@
 .content h1 {
   font-size: 2.5rem;
   margin-bottom: 2rem;
-  color: white;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  color: #1e293b;
+  border-bottom: 2px solid #f1f5f9;
   padding-bottom: 1rem;
 }
 
@@ -50,12 +49,12 @@
   font-size: 1.8rem;
   margin-top: 3rem;
   margin-bottom: 1rem;
-  color: #e2e8f0;
+  color: #334155;
 }
 
 .content p {
   margin-bottom: 1.5rem;
-  color: var(--text-muted);
+  color: #475569;
 }
 
 @media (max-width: 768px) {

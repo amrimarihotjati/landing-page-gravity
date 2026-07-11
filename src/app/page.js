@@ -6,7 +6,7 @@ export const revalidate = 0;
 
 export const metadata = {
   title: "Premium Android Apps",
-  description: "Discover our premium ecosystem of Android applications.",
+  description: "Jelajahi ekosistem aplikasi Android kami.",
 };
 
 export default async function Home() {
@@ -19,25 +19,17 @@ export default async function Home() {
 
   return (
     <div className="animate-fade-in">
-      <div className={styles.bgGlow}></div>
-      <div className={styles.bgGlow2}></div>
-      
       <main>
         {/* Hero Section */}
         <section className={`container ${styles.hero}`}>
           <div className={styles.heroContent}>
-            <div className={styles.badge}>Next-Gen Ecosystem</div>
             <h1 className={styles.title}>
               Solusi Digital <span>Terbaik</span> Untuk Anda
             </h1>
             <p className={styles.subtitle}>
-              Jelajahi karya inovatif kami yang dirancang dengan estetika premium, 
-              keamanan tingkat tinggi, dan pengalaman pengguna yang luar biasa. 
-              Tingkatkan produktivitas harian Anda sekarang.
+              Kami membangun aplikasi yang memberikan solusi nyata untuk kebutuhan harian Anda dengan antarmuka yang modern, aman, dan mudah digunakan.
             </p>
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-              <a href="#apps" className="btn">Jelajahi Aplikasi</a>
-            </div>
+            <a href="#apps" className="btn">Lihat Aplikasi</a>
           </div>
           
           <div className={styles.heroImageWrapper}>
@@ -48,17 +40,23 @@ export default async function Home() {
               className={styles.heroImage} 
             />
           </div>
+
+          <div className={styles.waveContainer}>
+            <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+              <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V95.8C59.71,118.08,130.83,119.26,200,107.57,241.69,100.52,283.47,81.43,321.39,56.44Z" className={styles.shapeFill}></path>
+            </svg>
+          </div>
         </section>
 
         {/* Apps Listing Section */}
         <section id="apps" className={styles.appsSection}>
           <div className={styles.sectionHeader}>
-            <h2>Ekosistem Premium</h2>
-            <p>Aplikasi pilihan untuk menunjang aktivitas Anda</p>
+            <h2>Jelajahi Ekosistem Kami</h2>
+            <p>Berbagai pilihan aplikasi untuk kebutuhan harian Anda</p>
           </div>
           <div className={styles.grid}>
             {apps.map((app) => {
-              // Menentukan URL Privacy Policy (Custom atau Bawaan)
+              // Menentukan URL Privacy Policy (Custom eksternal, custom CMS, atau Bawaan)
               const privacyUrl = app.customprivacylink && app.customprivacylink.trim() !== '' 
                 ? app.customprivacylink 
                 : `/privacy/${app.id}`;
@@ -96,7 +94,7 @@ export default async function Home() {
                         rel="noopener noreferrer"
                         className={styles.playStoreBtn}
                       >
-                      Download di Google Play
+                      Google Play
                     </a>
                     )}
                     
