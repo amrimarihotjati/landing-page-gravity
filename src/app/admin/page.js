@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import styles from "./admin.module.css";
-import appsDataJson from "../../../data/apps.json";
+import appsDataJson from "../../data/apps.json";
 
 export default function AdminPage() {
   const [token, setToken] = useState("");
