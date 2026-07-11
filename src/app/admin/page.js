@@ -11,7 +11,6 @@ export default function AdminPage() {
   const [message, setMessage] = useState({ text: "", type: "" });
 
   useEffect(() => {
-    // Ambil isi app-ads.txt saat ini
     fetch("/app-ads.txt")
       .then((res) => res.text())
       .then((text) => setAppAds(text))
@@ -143,12 +142,12 @@ export default function AdminPage() {
 
       <div className={styles.actions}>
         {message.text && (
-          <div className={\`\${styles.message} \${styles[message.type]}\`}>
+          <div className={`${styles.message} ${styles[message.type]}`}>
             {message.text}
           </div>
         )}
         <button 
-          className={\`\${styles.btn} \${loading ? styles.loading : ''}\`} 
+          className={`${styles.btn} ${loading ? styles.loading : ''}`} 
           onClick={handleSave} 
           disabled={loading}
         >

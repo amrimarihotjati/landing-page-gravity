@@ -5,17 +5,17 @@ const REPO_NAME = 'landing-page-gravity';
 const BRANCH = 'main';
 
 async function getFileSha(path, token) {
-  const url = \`https://api.github.com/repos/\${REPO_OWNER}/\${REPO_NAME}/contents/\${path}?ref=\${BRANCH}\`;
+  const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}?ref=${BRANCH}`;
   const res = await fetch(url, {
     headers: {
-      Authorization: \`token \${token}\`,
+      Authorization: `token ${token}`,
       Accept: 'application/vnd.github.v3+json',
     },
     cache: 'no-store'
   });
   if (!res.ok) {
     if (res.status === 404) return null; // File doesn't exist yet
-    throw new Error(\`Failed to fetch \${path} sha\`);
+    throw new Error(`Failed to fetch ${path} sha`);
   }
   const data = await res.json();
   return data.sha;
@@ -25,11 +25,11 @@ async function updateFile(path, content, token, commitMessage) {
   const sha = await getFileSha(path, token);
   const base64Content = Buffer.from(content).toString('base64');
   
-  const url = \`https://api.github.com/repos/\${REPO_OWNER}/\${REPO_NAME}/contents/\${path}\`;
+  const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`;
   const res = await fetch(url, {
     method: 'PUT',
     headers: {
-      Authorization: \`token \${token}\`,
+      Authorization: `token ${token}`,
       Accept: 'application/vnd.github.v3+json',
       'Content-Type': 'application/json',
     },
