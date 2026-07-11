@@ -53,7 +53,7 @@ export default async function PrivacyPolicyPage({ params }) {
       
       <div className={styles.card}>
         <div className={styles.content}>
-          {renderMarkdown(app.privacyPolicy)}
+          {renderMarkdown(app.privacypolicy || '')}
         </div>
       </div>
     </div>
