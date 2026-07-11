@@ -217,12 +217,12 @@ export default function AdminPage() {
 
       <div className={styles.actions}>
         {message.text && (
-          <div className={\`\${styles.message} \${styles[message.type]}\`}>
+          <div className={`${styles.message} ${styles[message.type]}`}>
             {message.text}
           </div>
         )}
         <button 
-          className={\`\${styles.btn} \${loading ? styles.loading : ''}\`} 
+          className={`${styles.btn} ${loading ? styles.loading : ''}`} 
           onClick={handleSave} 
           disabled={loading}
         >
