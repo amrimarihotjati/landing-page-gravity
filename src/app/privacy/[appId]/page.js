@@ -33,16 +33,32 @@ export default async function PrivacyPolicyPage({ params }) {
   if (!app) notFound();
 
   return (
-    <div className={s.pageContainer}>
-      <Link href="/" className={s.backLink}>
-        ← Kembali ke Beranda
-      </Link>
-
-      <article className={s.article}>
-        <div className={s.content}>
-          {renderMarkdown(app.privacypolicy || "")}
+    <div className={s.pageWrapper}>
+      {/* Blue header */}
+      <header className={s.pageHeader}>
+        <div className={s.headerDecor} />
+        <div className={s.headerInner}>
+          <Link href="/" className={s.backLink}>
+            ← Kembali
+          </Link>
+          <h1 className={s.pageTitle}>Privacy Policy</h1>
+          <p className={s.pageMeta}>{app.name}</p>
         </div>
-      </article>
+      </header>
+
+      {/* Content body */}
+      <div className={s.pageBody}>
+        <article className={s.article}>
+          <div className={s.content}>
+            {renderMarkdown(app.privacypolicy || "")}
+          </div>
+        </article>
+      </div>
+
+      {/* Mini footer */}
+      <footer className={s.pageFooter}>
+        © {new Date().getFullYear()} SpellApp. All rights reserved.
+      </footer>
     </div>
   );
 }

@@ -32,15 +32,39 @@ export default async function CMSPage({ params }) {
 
   if (!page) notFound();
 
-  return (
-    <div className={s.pageContainer}>
-      <Link href="/" className={s.backLink}>
-        ← Kembali ke Beranda
-      </Link>
+  const dateStr = page.created_at
+    ? new Date(page.created_at).toLocaleDateString("id-ID", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : null;
 
-      <article className={s.article}>
-        <div className={s.content}>{renderMarkdown(page.content || "")}</div>
-      </article>
+  return (
+    <div className={s.pageWrapper}>
+      {/* Blue header */}
+      <header className={s.pageHeader}>
+        <div className={s.headerDecor} />
+        <div className={s.headerInner}>
+          <Link href="/" className={s.backLink}>
+            ← Kembali
+          </Link>
+          <h1 className={s.pageTitle}>{page.title}</h1>
+          {dateStr && <p className={s.pageMeta}>Diperbarui: {dateStr}</p>}
+        </div>
+      </header>
+
+      {/* Content body */}
+      <div className={s.pageBody}>
+        <article className={s.article}>
+          <div className={s.content}>{renderMarkdown(page.content || "")}</div>
+        </article>
+      </div>
+
+      {/* Mini footer */}
+      <footer className={s.pageFooter}>
+        © {new Date().getFullYear()} SpellApp. All rights reserved.
+      </footer>
     </div>
   );
 }

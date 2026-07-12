@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { supabase } from "../lib/supabase";
+import ScreenshotGallery from "../components/ScreenshotGallery";
 import s from "./page.module.css";
 
 export const revalidate = 0;
@@ -165,16 +166,10 @@ export default async function Home() {
                     <p className={s.cardDesc}>{app.description}</p>
 
                     {app.screenshots?.length > 0 && (
-                      <div className={s.screenshots}>
-                        {app.screenshots.map((src, i) => (
-                          <img
-                            key={i}
-                            src={src}
-                            alt={`${app.name} screenshot ${i + 1}`}
-                            className={s.screenshotImg}
-                          />
-                        ))}
-                      </div>
+                      <ScreenshotGallery
+                        screenshots={app.screenshots}
+                        appName={app.name}
+                      />
                     )}
 
                     <div className={s.cardActions}>
@@ -258,17 +253,10 @@ export default async function Home() {
       {/* ── Footer ── */}
       <footer className={s.footer}>
         <div className={`${s.container} ${s.footerInner}`}>
-          <div className={s.footerLeft}>
-            <span className={s.footerBrand}>✦ SpellApp</span>
-            <span className={s.footerCopy}>
-              © {new Date().getFullYear()} SpellApp. All rights reserved.
-            </span>
-          </div>
-          <div className={s.footerLinks}>
-            <Link href="/admin" className={s.footerLink}>
-              Admin
-            </Link>
-          </div>
+          <span className={s.footerBrand}>✦ SpellApp</span>
+          <span className={s.footerCopy}>
+            © {new Date().getFullYear()} SpellApp. All rights reserved.
+          </span>
         </div>
       </footer>
     </div>
